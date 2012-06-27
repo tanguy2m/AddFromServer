@@ -7,7 +7,7 @@
  *             Last change / Viimati muudetud: 23.09.2011
  *             Homepage / Koduleht: encode-explorer.siineiolekala.net
  *
- *             Modifié par Tanguy de Masfrand - Décembre 2011
+ *             Modified by Tanguy de Masfrand - Dec 2011, Mar/Apr 2012
  *
  ***************************************************************************/
 
@@ -104,7 +104,7 @@ $_CONFIG['show_load_time'] = false;
 // The time format for the "last changed" column.
 // Default: $_CONFIG['time_format'] = "d.m.y H:i:s";
 //
-$_CONFIG['time_format'] = "d/m/y H:i";
+$_CONFIG['time_format'] = "d/m/y";
 
 // Charset. Use the one that suits for you. 
 // Default: $_CONFIG['charset'] = "UTF-8";
@@ -1268,6 +1268,7 @@ class File
   //var $extension;
   var $type;
   var $modTime;
+  var $md5 = ''; // md5 of the file, if image
 
   //
   // Constructor
@@ -1280,6 +1281,9 @@ class File
     $this->type = File::getFileType($this->location->getDir(true, false, false, 0).$this->getName());
     $this->size = File::getFileSize($this->location->getDir(true, false, false, 0).$this->getName());
     $this->modTime = filemtime($this->location->getDir(true, false, false, 0).$this->getName());
+	
+	if($this->isImage())
+		$this->md5 = md5_file($this->location->getDir(true, false, false, 0).$this->getName());
   }
 
   function getName()
@@ -1310,6 +1314,11 @@ class File
   function getModTime()
   {
     return $this->modTime;
+  }
+  
+  function getMD5()
+  {
+    return $this->md5;
   }
 
   //
@@ -2050,13 +2059,14 @@ if($this->mobile == false)
   <?php if($this->mobile == false && GateKeeper::isDeleteAllowed()){?>
   <td class="del"><?php print EncodeExplorer::getString("del"); ?></td>
   <?php } ?>
+  <td class="md5">Site</td>
 </tr>
 <?php 
 }
 ?>
 <tr class="row two">
   <td class="icon"><img alt="dir" src="?img=directory" /></td>
-  <td colspan="<?php print (($this->mobile == true?2:(GateKeeper::isDeleteAllowed()?4:3))); ?>" class="long">
+  <td colspan="<?php print (($this->mobile == true?3:(GateKeeper::isDeleteAllowed()?5:4))); ?>" class="long">
     <a class="item" href="<?php print $this->makeLink(false, false, null, null, null, $this->location->getDir(false, true, false, 1)); ?>">..</a>
   </td>
 </tr>
@@ -2076,7 +2086,7 @@ if($this->dirs)
     $row_style = ($row ? "one" : "two");
     print "<tr class=\"row ".$row_style."\">\n";
     print "<td class=\"icon\"><img alt=\"dir\" src=\"?img=directory\" /></td>\n";
-    print "<td class=\"name\" colspan=\"".($this->mobile == true?2:3)."\">\n";
+    print "<td class=\"name\" colspan=\"".($this->mobile == true?3:4)."\">\n";
     print "<a href=\"".$this->makeLink(false, false, null, null, null, $this->location->getDir(false, true, false, 0).$dir->getNameEncoded())."\" class=\"item dir\">";
     print $dir->getNameHtml();
     print "</a>\n";
@@ -2098,7 +2108,7 @@ if($this->files)
   foreach ($this->files as $file)
   {
     $row_style = ($row ? "one" : "two");
-    print "<tr class=\"row ".$row_style.(++$count == count($this->files)?" last":"")."\">\n";
+    print "<tr id=\"".$file->getNameHtml()."\" class=\"row ".$row_style.(++$count == count($this->files)?" last":"")."\">\n";
     print "<td class=\"icon\"><img alt=\"".$file->getType()."\" src=\"".$this->makeIcon($file->getType())."\" /></td>\n";
     print "<td class=\"name\">\n";
     print "\t\t<a href=\"".$this->location->getDir(false, true, false, 0).$file->getNameEncoded()."\"";
@@ -2127,6 +2137,7 @@ if($this->files)
         </a>
       </td>";
     }
+	print "<td".($file->isImage()?" class=\"md5 row\" id=\"".$file->getMD5()."\"":"")."></td>\n";
     print "</tr>\n";
     $row =! $row;
   }

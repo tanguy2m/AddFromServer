@@ -1,7 +1,7 @@
 <?php
   /*
   Plugin Name: AddFromServer
-  Version: 2.3.a
+  Version: 2.3.b
   Description: Add images already stored on server to Piwigo
   Author: TdM
   */

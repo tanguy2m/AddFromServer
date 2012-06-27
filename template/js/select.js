@@ -1,4 +1,19 @@
 ///////////////////////////
+//    Iframe loading     //
+///////////////////////////
+
+function showBrowser(size){
+  $("#browser").height(window.frames["browser"].document['body'].offsetHeight+30); // Dimensionement de l'Iframe en fonction du contenu
+  $("#waitBrowser").css('background-color',$("#content").css('background-color')); // Copie de la couleur de fond du thème
+  $("#waitBrowser").hide();
+}
+
+function hideBrowser(){ // Le dossier change dans browse.php
+  razFile();
+  $("#waitBrowser").show();
+}
+
+///////////////////////////
 //     Notifications     //
 ///////////////////////////
 
@@ -143,19 +158,24 @@ $(function() {
     catch (error) { errorNotif( 'Suppression '+$('#cheminFichier').html(), error ); }   
     
     // Rafraîchissement de l'iframe
-    reloadDossier(); //C'est la fonction 'refresh' de l'Iframe
-    
-    // Suppression de la miniature
-    $("#miniature a").remove();
-    // Suppression du lien vers l'image
-    $('#cheminFichier').html('Sélectionner une photo pour afficher un aperçu');
-	$("#suppr").hide();
+    reloadDossier($('#cheminFichier').html()); //C'est la fonction 'refresh' de l'Iframe
+    // Remise à zéro de la zone propre à l'images
+    razFile();
+
   });
 });
 
 // --------------------------------------- //
 //      Mise à jour du panel 'fichier'     //
 // --------------------------------------- //
+
+function razFile() {
+  // Suppression de la miniature
+  $("#miniature a").remove();
+  // Suppression du lien vers l'image
+  $('#cheminFichier').html('Sélectionner une photo pour afficher un aperçu');
+  $("#suppr").hide();
+}
 
 function displayNoThumb() {
 	$('#cheminFichier').html("Ce n'est pas une photo");
@@ -199,6 +219,19 @@ function displayInfoFichier(filename)
 // --------------------------------------- //
 //      Mise à jour du panel 'dossier'     //
 // --------------------------------------- //
+
+function updateMissingNb(number) {
+  if ( number > 1 )
+    $(".titrePage h2 span").html("- "+number+" photos absentes de Piwigo");
+  else if ( number == 1 )
+    $(".titrePage h2 span").html("- "+number+" photo absente de Piwigo");
+  else
+    $(".titrePage h2 span").html("- Toutes les photos sont déjà dans Piwigo");
+}
+
+function razMissingNb() {
+  $(".titrePage h2 span").empty();
+}
 
 function updateChemin(path)
 {

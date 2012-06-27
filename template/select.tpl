@@ -6,10 +6,12 @@
 {html_head}{literal}
 <style type="text/css">
   iframe {float:left; border: 0px; width: 460px; max-height: 500px;}
+  #waitBrowser {position:absolute; top:0; left:0; z-index:1; width:100%; height:100%; opacity:0.8;}
   div#cheminFichier {margin-bottom: 8px;}
   .loading {background: url('themes/default/images/ajax-loader-small.gif') no-repeat right top;}
+  .loadingBig {background: url('admin/themes/default/images/ajax-loader-bar.gif') no-repeat center center;}
   #level{margin-top: 10px;}
-  #file{position:relative;}
+  .reference {position:relative;}
   #suppr{position:absolute; top:-4px; right:0; cursor:pointer;}
 </style>
 <script type="text/javascript">
@@ -20,19 +22,21 @@
 {/literal}{/html_head}
 
 <div class="titrePage">
-  <h2>Préparation du dossier</h2>
+  <h2>Préparation du dossier <span></span></h2>
 </div>
 
-<fieldset id="origine">
+<fieldset id="origine" class="reference">
   <legend>Dossier: <span id="fullDir">{$conf.photos_local_folder}<span id="chemin"></span></span></legend>
 
-  <iframe id="browser" src="{$plugin_folder}template/browse.php"></iframe>
-  <div id="file">
+  <iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
+  <div id="waitBrowser" class="loadingBig"></div>
+
+  <div class="reference">
     <div id="cheminFichier">Sélectionner une photo pour afficher un aperçu</div>
     <img id="suppr" src="{$ROOT_URL}{$themeconf.admin_icon_dir}/category_delete.png" title="Supprimer la photo" style="display:none">
   </div>
   <div id="miniature"></div> 
-  
+
 </fieldset>
   
 <div style="display:none">

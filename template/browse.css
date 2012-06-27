@@ -105,7 +105,12 @@ table.table tr.row td.size {
 }
 
 table.table tr.row td.changed {
-  width: 150px;
+  width: 100px;
+  text-align: center;
+}
+
+table.table tr.row td.md5{
+  width: 40px;
   text-align: center;
 }
 

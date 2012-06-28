@@ -40,6 +40,7 @@
     $template->assign(array(
       'category_id' => $_POST['category'],
       'level_id' => $_POST['level'],
+      'systematic_tag' => $conf['AddFromServer']['systematic_tag'],
       'dossier' => $_POST['dossier'],
       'content' => getDirContent($_POST['dossier'])
     ));

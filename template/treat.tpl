@@ -16,7 +16,7 @@ $("input#launch").click(function() {
               image_path: "{/literal}{$dossier}{literal}"+$(this).children("td.entry").html(),
               category: {/literal}{$category_id}{literal},
               level: {/literal}{$level_id}{literal},
-			  tags: "à trier"
+			  tags: {/literal}{$systematic_tag}{literal}
 			},
 	  beforeSend: jQuery.proxy(function() {
 		$(this).children("td.status").html("en cours d'envoi");

@@ -7,6 +7,7 @@
 		$config = array(
 			'photos_local_folder' => '/c/archive/Photos/',
 			'photos_bin_folder'   => '/c/archive/Recycle Bin/Photos/',
+            'systematic_tag' => 'à trier'
 		);
 		
 		// Store configuration in database

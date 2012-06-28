@@ -3,6 +3,7 @@
   // ---------------------------
   //    WebService addFromServer
   // ---------------------------
+  // Adaptation de la méthode Piwigo: /include/ws_functions.inc.php - Fonction: ws_images_addSimple
   
   function ws_images_addFromServer($params, &$service)
   {
@@ -16,7 +17,7 @@
     // Image path verification
     if (!is_file($params['image_path']))
     {
-      return new PwgError(WS_ERR_INVALID_PARAM, "Invalid image path");
+      return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified");
     }
     // Image already known ?
     include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
@@ -67,6 +68,7 @@
 		exec($cmd);
 	}
 	
+    // Fonction add_uploaded_file du script /admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
       $params['image_path'],
       basename($params['image_path']),

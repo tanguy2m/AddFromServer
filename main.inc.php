@@ -36,8 +36,7 @@
         'image_id' => array('default' => null)
       ),
       '<b>Admin only</b><br>
-      Permet d\'ajouter une image depuis le filesystem du serveur.<br>
-      Les images websize et thumbnail seront calculées si nécessaire par Piwigo.'
+      Permet d\'ajouter une image depuis le filesystem du serveur.'
     );
   }
   

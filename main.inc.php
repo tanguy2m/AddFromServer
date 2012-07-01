@@ -33,7 +33,8 @@
 			'maxValue' => $conf['available_permission_levels']
 		),
         'tags' => array('default' => null),
-        'image_id' => array('default' => null)
+        'image_id' => array('default' => null),
+        'date_creation' => array('default' => null)
       ),
       '<b>Admin only</b><br>
       Permet d\'ajouter une image depuis le filesystem du serveur.'

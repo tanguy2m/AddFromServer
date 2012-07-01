@@ -17,8 +17,9 @@
     // Image path verification
     if (!is_file($params['image_path']))
     {
-      return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified");
+      return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid");
     }
+    
     // Image already known ?
     include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
     $query='
@@ -55,19 +56,12 @@
       return new PwgError(WS_ERR_INVALID_PARAM, "Invalid category_id");
     }
     
-    require_once(PHPWG_ROOT_PATH.'admin/include/functions_upload.inc.php');
+    // Copy original in temporary folder
+    $original = $params['image_path'];
+    $params['image_path'] = PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/'. basename($original);
+    copy($original, $params['image_path']);
     
-	// If no HIGH image, auto-rotate the original
-	$original = $params['image_path'];
-	if ($conf['upload_form_websize_resize']
-	    and !need_resize($original, $conf['upload_form_websize_maxwidth'], $conf['upload_form_websize_maxheight']))
-	{
-		//Rotate image if necessary
-		$params['image_path'] = PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/'. basename($params['image_path']);
-		$cmd = "convert -auto-orient '".$original."' '".$params['image_path']."'";
-		exec($cmd);
-	}
-	
+    require_once(PHPWG_ROOT_PATH.'admin/include/functions_upload.inc.php');
     // Fonction add_uploaded_file du script /admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
       $params['image_path'],
@@ -76,10 +70,6 @@
       isset($params['level']) ? $params['level'] : null,
       $params['image_id'] > 0 ? $params['image_id'] : null
     );
-	
-	//Clean-up
-	if($original != $params['image_path'])
-		unlink($params['image_path']);
 	
     $info_columns = array(
       'name',
@@ -90,12 +80,12 @@
     );
     
     foreach ($info_columns as $key)
-             {
-               if (isset($params[$key]))
-               {
-                 $update[$key] = $params[$key];
-               }
-             }
+    {
+        if (isset($params[$key]))
+        {
+            $update[$key] = $params[$key];
+        }
+    }
     
     if (count(array_keys($update)) > 0)
     {
@@ -112,15 +102,16 @@
       );
     }
     
+    // Add tags to the image if specified
     if (isset($params['tags']) and !empty($params['tags']))
     {
       $tag_ids = array();
       $tag_names = explode(',', $params['tags']);
       foreach ($tag_names as $tag_name)
-               {
-                 $tag_id = tag_id_from_tag_name($tag_name);
-                 array_push($tag_ids, $tag_id);
-               }
+      {
+          $tag_id = tag_id_from_tag_name($tag_name);
+          array_push($tag_ids, $tag_id);
+      }
       
       add_tags($tag_ids, array($image_id));
     }
@@ -154,22 +145,14 @@
     require_once(PHPWG_ROOT_PATH.'admin/include/functions_metadata.php');
     update_metadata(array($image_id=>$file_path));
     
-	//Symlink high picture if exists
-	$query = '
-      SELECT
-      id,path,has_high
-      FROM '.IMAGES_TABLE.'
-      WHERE id = '.$image_id.'
-      ;';
-	$element_info = pwg_db_fetch_assoc(pwg_query($query));
-	
-	require_once(PHPWG_ROOT_PATH.'include/functions_picture.inc.php');
-	$location = get_high_location($element_info);
-	if($location != '') { // No HIGH image
-		//Replace HIGH picture by a symlink to the original
-		$location = realpath($location);
-		unlink($location);
-		symlink($original,$location);
+	//Symlink original picture if not resized
+    $need_resize = ($conf['original_resize'] and need_resize($file_path, $conf['original_resize_maxwidth'], $conf['original_resize_maxheight']));        
+	if (!conf['original_resize'] or !$need_resize)
+    {
+        //Replace HIGH picture by a symlink to the original
+    	$real_path = realpath($file_path);
+		unlink($real_path);
+		symlink($original,$real_path);
 	}
 	
     return array(

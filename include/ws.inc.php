@@ -147,7 +147,7 @@
     
 	//Symlink original picture if not resized
     $need_resize = ($conf['original_resize'] and need_resize($file_path, $conf['original_resize_maxwidth'], $conf['original_resize_maxheight']));        
-	if (!conf['original_resize'] or !$need_resize)
+	if (!$conf['original_resize'] or !$need_resize)
     {
         //Replace HIGH picture by a symlink to the original
     	$real_path = realpath($file_path);

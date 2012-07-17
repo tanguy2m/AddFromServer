@@ -1,4 +1,4 @@
-{combine_script id='treat' load='footer' require='jquery' path="$plugin_folder/template/js/select.js"}
+{combine_script id='treat' load='header' require='jquery' path="$plugin_folder/template/js/select.js"}
 {combine_script id='jquery.jgrowl' load='footer' require='jquery' path='themes/default/js/plugins/jquery.jgrowl_minimized.js'}
 {combine_css path="admin/themes/default/uploadify.jGrowl.css"}
 {include file='include/colorbox.inc.tpl'}

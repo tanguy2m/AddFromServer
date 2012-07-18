@@ -143,7 +143,7 @@
     list($file_path) = pwg_db_fetch_row(pwg_query($query));
     
     require_once(PHPWG_ROOT_PATH.'admin/include/functions_metadata.php');
-    update_metadata(array($image_id=>$file_path));
+    sync_metadata(array($image_id));
     
 	//Symlink original picture if not resized
     $need_resize = ($conf['original_resize'] and need_resize($file_path, $conf['original_resize_maxwidth'], $conf['original_resize_maxheight']));        

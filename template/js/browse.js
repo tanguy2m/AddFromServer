@@ -13,7 +13,6 @@ $(function() {
     // ------------------------------
     var fullLink = $('tr.row.one.header td.name a').attr('href'); // Récupération du lien à partir du header 'Nom de fichier'
     parent.updateChemin(decodeURIComponent(fullLink.substring(fullLink.indexOf("&dir=photos/") + 12))); // On ne garde que la fin de la chaîne après "&dir=photos/"
-    
     // --------------------------------------
     // Récupération du click sur les fichiers
     // --------------------------------------
@@ -28,38 +27,43 @@ $(function() {
     // -----------------------------------------
     // Récupération de l'état dans Piwigo ou pas
     // -----------------------------------------
-    var md5_list = '';
+    // Fait par le client car temps masqué
+    
+    var md5_list = [];
+    var maxNumber = 10; // Nombre max de fichiers par requête
     $("td.md5.row").each(function(index) {
-        md5_list += $(this).attr('id') + ';';
-    }); // Fait par le client car temps masqué
-    if (md5_list !== '') { // Si il y a au moins une photo, requête
-        $.ajax({
-            url: './../../../ws.php?format=json',
-            // Remontée jusqu'à la racine de Piwigo
-            data: {
-                method: 'pwg.images.exist',
-                md5sum_list: md5_list
-            },
-            datatype: 'json',
-            success: function(data) {
-                var missing = 0;
-                if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
-                    $("td.md5.row").each(function(index) { // Boucle sur toutes les cellules de type 'md5'
-                        var result = jQuery.parseJSON(data).result[$(this).attr('id')];
-                        if (result > 0) {
-                            $(this).append('<a href="./../../../picture.php?/' + result + '" target="_blank" title="Photo dans Piwigo"></a>');
-                            $(this).children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
-                        }
-                        else {
-                            missing++;
-                        }
-                    });
-                    parent.updateMissingNb(missing);
+        md5_list[(index - index % maxNumber) / maxNumber] += $(this).attr('id') + ';';
+    });
+
+    if (md5_list.length() > 0) { // Si il y a au moins une photo, requête
+        $.each(md5_list, function(index, MD5_chain) {
+            $.ajaxq("checkExist", {
+                url: './../../../ws.php?format=json',
+                // Remontée jusqu'à la racine de Piwigo
+                data: {
+                    method: 'pwg.images.exist',
+                    md5sum_list: MD5_chain
+                },
+                datatype: 'json',
+                success: function(data) {
+                    var missing = 0;
+                    if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
+                        $.each(jQuery.parseJSON(data).result, function(md5_value, resultat) {
+                            if (resultat > 0) {
+                                $("#" + md5_value).append('<a href="./../../../picture.php?/' + resultat + '" target="_blank" title="Photo dans Piwigo"></a>');
+                                $("#" + md5_value).children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
+                            }
+                            else {
+                                missing++;
+                            }
+                        });
+                        parent.updateMissingNb(missing);
+                    }
+                    else {
+                        alert("erreur ws");
+                    }
                 }
-                else {
-                    alert("erreur ws");
-                }
-            }
+            });
         });
     }
     else {
@@ -68,6 +72,7 @@ $(function() {
 });
 
 // Refresh de la page, non utilisé pour l'instant
+
 function refresh() {
     window.location.href = window.location.href;
 }

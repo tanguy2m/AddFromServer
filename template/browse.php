@@ -1988,7 +1988,8 @@ $(document).ready(function() {
 ?> 
 <!-- Script perso permettant de récupérer le chemin vers le dossier -->
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
-  <script type="text/javascript" src="js/browse.js"></script>
+<script type="text/javascript" src="js/jquery.ajaxq.js"></script>
+<script type="text/javascript" src="js/browse.js"></script>
   
 <title><?php if(EncodeExplorer::getConfig('main_title') != null) print EncodeExplorer::getConfig('main_title'); ?></title>
 </head>

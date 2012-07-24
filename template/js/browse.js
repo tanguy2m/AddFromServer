@@ -28,14 +28,15 @@ $(function() {
     // Récupération de l'état dans Piwigo ou pas
     // -----------------------------------------
     // Fait par le client car temps masqué
-    
     var md5_list = [];
     var maxNumber = 10; // Nombre max de fichiers par requête
     $("td.md5.row").each(function(index) {
+        if (index % maxNumber === 0) md5_list[index / maxNumber] = "";
         md5_list[(index - index % maxNumber) / maxNumber] += $(this).attr('id') + ';';
     });
 
     if (md5_list.length > 0) { // Si il y a au moins une photo, requête
+        var missing = 0;
         $.each(md5_list, function(index, MD5_chain) {
             $.ajaxq("checkExist", {
                 url: './../../../ws.php?format=json',
@@ -46,7 +47,6 @@ $(function() {
                 },
                 datatype: 'json',
                 success: function(data) {
-                    var missing = 0;
                     if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
                         $.each(jQuery.parseJSON(data).result, function(md5_value, resultat) {
                             if (resultat > 0) {

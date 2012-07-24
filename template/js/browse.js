@@ -35,7 +35,7 @@ $(function() {
         md5_list[(index - index % maxNumber) / maxNumber] += $(this).attr('id') + ';';
     });
 
-    if (md5_list.length() > 0) { // Si il y a au moins une photo, requête
+    if (md5_list.length > 0) { // Si il y a au moins une photo, requête
         $.each(md5_list, function(index, MD5_chain) {
             $.ajaxq("checkExist", {
                 url: './../../../ws.php?format=json',

@@ -1,4 +1,4 @@
-< ? php
+<?php
 
 // ---------------------------
 //    WebService addFromServer
@@ -6,6 +6,7 @@
 // Adaptation de la méthode Piwigo: /include/ws_functions.inc.php - Fonction: ws_images_addSimple
 
 function ws_images_addFromServer($params, & $service) {
+    
     global $conf;
     // Admin only
     if (!is_admin()) {
@@ -140,8 +141,7 @@ function ws_images_existFromPath($params, & $service) {
 
     $md5 = md5_file($params["image_path"]);
 
-
     return invoke("ws_images_exist", array('md5sum_list' = > $md5));
 }
 
-? >
+?>

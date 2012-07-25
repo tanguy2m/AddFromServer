@@ -1,5 +1,5 @@
-< ? php
-/*
+<?php
+  /*
   Plugin Name: AddFromServer
   Version: 2.4.b_beta
   Description: Add images already stored on server to Piwigo
@@ -13,8 +13,6 @@ $conf['AddFromServer'] = unserialize($conf['AddFromServer']);
 // Récupération de l'event qui liste tous les web-services
 add_event_handler('ws_add_methods', 'new_add_image_ws');
 // Fonction ajoutant le nouveau web-service
-
-
 function new_add_image_ws($arr) {
     global $conf;
     include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
@@ -25,7 +23,6 @@ function new_add_image_ws($arr) {
 }
 
 add_event_handler('ws_add_methods', 'new_check_exists');
-
 function new_check_exists($arr) {
     global $conf;
     include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
@@ -37,10 +34,9 @@ function new_check_exists($arr) {
 
 // Add a new entry in Admin plugins menu
 add_event_handler('get_admin_plugin_menu_links', 'add_entry_admin_menu');
-
 function add_entry_admin_menu($menu) {
     array_push($menu, array('NAME' = > 'Ajouter photos du NAS', 'URL' = > get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))));
     return $menu;
 }
 
-? >
+?>

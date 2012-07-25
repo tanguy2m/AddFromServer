@@ -115,7 +115,6 @@ jQuery(document).ready(function() {
 // ---------------------------//
 // Fonction permettant de 'supprimer' une image d'un dossier
 
-
 function suppr(image) {
     $.ajax({
         url: pluginPath + 'include/delete.php',
@@ -177,35 +176,39 @@ function displayNoThumb() {
     $("#suppr").hide();
 }
 
+var thumb = new Image();
+
 function displayInfoFichier(filename) {
     // Affichage du chemin vers le fichier
     $('#cheminFichier').html(filename);
 
-    // Affichage de la miniature avec sablier
-    var img = new Image();
+    if ($("#cheminFichier").hasClass("loading")) {
+        $(thumb).attr('src', pluginPath + 'include/thumb.php?max=480&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()));
+    }
+    else {
+        $("#miniature a").remove(); // Suppression de l'image existante
+        $("#suppr").hide();
+        $("#cheminFichier").addClass('loading');
 
-    $("#miniature a").remove(); // Suppression de l'image existante
-    $("#suppr").hide();
-    $("#cheminFichier").addClass('loading');
+        $(thumb).load(function() { // Code exécuté à l'ouverture de l'image
+            $(this).hide(); // On cache l'image par défaut      
+            $("#cheminFichier").removeClass('loading');
+            $('#miniature')
+            // Ajout du lien vers l'image 'HD'
+            .append('<a href=\"' + pluginPath + 'include/thumb.php?max=800&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()) + '\" target="_blank"></a>');
+            $('#miniature a').append(this); // Insertion de l'image dans le div #miniature
+            $(this).fadeIn(); // Petit effet à l'ouverture de l'image
+            $("#suppr").show();
+        })
 
-    $(img).load(function() { // Code exécuté à l'ouverture de l'image
-        $(this).hide(); // On cache l'image par défaut      
-        $("#cheminFichier").removeClass('loading');
-        $('#miniature')
-        // Ajout du lien vers l'image 'HD'
-        .append('<a href=\"' + pluginPath + 'include/thumb.php?max=800&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()) + '\" target="_blank"></a>');
-        $('#miniature a').append(this); // Insertion de l'image dans le div #miniature
-        $(this).fadeIn(); // Petit effet à l'ouverture de l'image
-        $("#suppr").show();
-    })
+        .error(function() {
+            errorNotif('Calcul des miniatures', 'Chargement de l\'image impossible');
+            $("#cheminFichier").removeClass('loading');
+        })
 
-    .error(function() {
-        errorNotif('Calcul des miniatures', 'Chargement de l\'image impossible');
-        $("#cheminFichier").removeClass('loading');
-    })
-
-    // *finally*, set the src attribute of the new image to our image
-    .attr('src', pluginPath + 'include/thumb.php?max=480&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()));
+        // *finally*, set the src attribute of the new image to our image
+        .attr('src', pluginPath + 'include/thumb.php?max=480&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()));
+    }
 }
 
 // --------------------------------------- //

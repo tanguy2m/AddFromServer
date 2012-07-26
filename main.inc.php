@@ -25,12 +25,12 @@ function new_add_image_ws($arr) {
             'image_path' => array(),
             'category' => array('default' => null),
             'name' => array('default' => null),
-            'author' => array('default' = > null),
+            'author' => array('default' => null),
             'comment' => array('default' => null),
-            'level' => array('default' = > 0, 'maxValue' = > $conf['available_permission_levels']),
-            'tags' = > array('default' = > null),
-            'image_id' = > array('default' = > null),
-            'date_creation' = > array('default' = > null)
+            'level' => array('default' => 0, 'maxValue' => $conf['available_permission_levels']),
+            'tags' => array('default' => null),
+            'image_id' => array('default' => null),
+            'date_creation' => array('default' => null)
         ),
         '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.');
 }
@@ -54,7 +54,13 @@ function new_check_exists($arr) {
 // Add a new entry in Admin plugins menu
 add_event_handler('get_admin_plugin_menu_links', 'add_entry_admin_menu');
 function add_entry_admin_menu($menu) {
-    array_push($menu, array('NAME' = > 'Ajouter photos du NAS', 'URL' = > get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))));
+    array_push(
+        $menu,
+        array(
+            'NAME' => 'Ajouter photos du NAS',
+            'URL' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
+        )
+    );
     return $menu;
 }
 

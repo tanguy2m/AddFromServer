@@ -109,9 +109,15 @@ table.table tr.row td.changed {
   text-align: center;
 }
 
-table.table tr.row td.md5{
+table.table tr.row td.site{
   width: 40px;
   text-align: center;
+}
+
+td.site.pending{
+  background-image:url(admin/themes/clear/icon/help.png);
+  background-repeat:no-repeat;
+  background-position:center center;
 }
 
 table.table tr.header img {

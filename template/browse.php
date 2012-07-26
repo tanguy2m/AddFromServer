@@ -1268,7 +1268,6 @@ class File
   //var $extension;
   var $type;
   var $modTime;
-  var $md5 = ''; // md5 of the file, if image
 
   //
   // Constructor
@@ -1281,9 +1280,6 @@ class File
     $this->type = File::getFileType($this->location->getDir(true, false, false, 0).$this->getName());
     $this->size = File::getFileSize($this->location->getDir(true, false, false, 0).$this->getName());
     $this->modTime = filemtime($this->location->getDir(true, false, false, 0).$this->getName());
-	
-	if($this->isImage())
-		$this->md5 = md5_file($this->location->getDir(true, false, false, 0).$this->getName());
   }
 
   function getName()
@@ -1314,11 +1310,6 @@ class File
   function getModTime()
   {
     return $this->modTime;
-  }
-  
-  function getMD5()
-  {
-    return $this->md5;
   }
 
   //
@@ -2060,7 +2051,7 @@ if($this->mobile == false)
   <?php if($this->mobile == false && GateKeeper::isDeleteAllowed()){?>
   <td class="del"><?php print EncodeExplorer::getString("del"); ?></td>
   <?php } ?>
-  <td class="md5">Site</td>
+  <td class="site">Site</td>
 </tr>
 <?php 
 }
@@ -2138,7 +2129,7 @@ if($this->files)
         </a>
       </td>";
     }
-	print "<td".($file->isImage()?" class=\"md5 row\" id=\"".$file->getMD5()."\"":"")."></td>\n";
+	print "<td".($file->isImage()?" class=\"site pending\"":"")."></td>\n";
     print "</tr>\n";
     $row =! $row;
   }

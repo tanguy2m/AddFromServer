@@ -1,13 +1,11 @@
 <?php
 
-$service = &$arr[0];
-
 // ---------------------------
 //    WebService addFromServer
 // ---------------------------
 // Adaptation de la méthode Piwigo: /include/ws_functions.inc.php - Fonction: ws_images_addSimple
 
-function ws_images_addFromServer($params, & $service) {
+function ws_images_addFromServer($params, &$service) {
     
     global $conf;
     // Admin only
@@ -144,7 +142,7 @@ function ws_images_addFromServer($params, & $service) {
 //    WebService existFromPath
 // ---------------------------
 
-function ws_images_existFromPath($params, & $service) {
+function ws_images_existFromPath($params, &$service) {
 
     // Image path verification
     if (!is_file($params['image_path'])) {

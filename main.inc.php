@@ -17,9 +17,22 @@ function new_add_image_ws($arr) {
     global $conf;
     include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
 
-    $service = & $arr[0];
-    $service - > addMethod('pwg.images.addFromServer', 'ws_images_addFromServer', array('image_path' = > array(), 'category' = > array('default' = > null), 'name' = > array('default' = > null), 'author' = > array('default' = > null), 'comment' = > array('default' = > null), 'level' = > array('default' = > 0, 'maxValue' = > $conf['available_permission_levels']), 'tags' = > array('default' = > null), 'image_id' = > array('default' = > null), 'date_creation' = > array('default' = > null)), '<b>Admin only</b><br>
-      Permet d\'ajouter une image depuis le filesystem du serveur.');
+    $service = &$arr[0];
+    $service -> addMethod(
+        'pwg.images.addFromServer',
+        'ws_images_addFromServer',
+        array(
+            'image_path' => array(),
+            'category' => array('default' => null),
+            'name' => array('default' => null),
+            'author' => array('default' = > null),
+            'comment' => array('default' => null),
+            'level' => array('default' = > 0, 'maxValue' = > $conf['available_permission_levels']),
+            'tags' = > array('default' = > null),
+            'image_id' = > array('default' = > null),
+            'date_creation' = > array('default' = > null)
+        ),
+        '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.');
 }
 
 add_event_handler('ws_add_methods', 'new_check_exists');
@@ -27,9 +40,15 @@ function new_check_exists($arr) {
     global $conf;
     include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
 
-    $service = & $arr[0];
-    $service - > addMethod('pwg.images.existFromPath', 'ws_images_existFromPath', array('image_path' = > array()), '<b>Admin only</b><br>
-      Permet de vérifier la présence d\'une photo sur Piwigo à partir de son chemin sur le serveur.');
+    $service = &$arr[0];
+    $service -> addMethod(
+        'pwg.images.existFromPath',
+        'ws_images_existFromPath',
+        array(
+            'image_path' => array()
+        ),
+        '<b>Admin only</b><br>Permet de vérifier la présence d\'une photo sur Piwigo à partir de son chemin sur le serveur.'
+    );
 }
 
 // Add a new entry in Admin plugins menu

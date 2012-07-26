@@ -153,7 +153,7 @@ function ws_images_existFromPath($params, & $service) {
 
     $md5 = md5_file($params["image_path"]);
 
-    return $service -> invoke("ws_images_exist", array('md5sum_list' => $md5));
+    return $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
 }
 
 ?>

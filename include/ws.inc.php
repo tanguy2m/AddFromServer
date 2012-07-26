@@ -1,5 +1,7 @@
 <?php
 
+$service = &$arr[0];
+
 // ---------------------------
 //    WebService addFromServer
 // ---------------------------
@@ -151,7 +153,7 @@ function ws_images_existFromPath($params, & $service) {
 
     $md5 = md5_file($params["image_path"]);
 
-    return invoke("ws_images_exist", array('md5sum_list' => $md5));
+    return $service -> invoke("ws_images_exist", array('md5sum_list' => $md5));
 }
 
 ?>

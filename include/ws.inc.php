@@ -58,7 +58,12 @@ function ws_images_addFromServer($params, & $service) {
     require_once(PHPWG_ROOT_PATH.'admin/include/functions_upload.inc.php');
     // Fonction add_uploaded_file du script /admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
-    $params['image_path'], basename($params['image_path']), $params['category'] > 0 ? array($params['category']) : null, isset($params['level']) ? $params['level'] : null, $params['image_id'] > 0 ? $params['image_id'] : null);
+        $params['image_path'],
+        basename($params['image_path']),
+        $params['category'] > 0 ? array($params['category']) : null,
+        isset($params['level']) ? $params['level'] : null,
+        $params['image_id'] > 0 ? $params['image_id'] : null
+    );
 
     $info_columns = array('name', 'author', 'comment', 'level', 'date_creation', );
 
@@ -73,7 +78,12 @@ function ws_images_addFromServer($params, & $service) {
 
         include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
         mass_updates(
-        IMAGES_TABLE, array('primary' = > array('id'), 'update' = > array_diff(array_keys($update), array('id'))), array($update));
+            IMAGES_TABLE,
+            array(
+                'primary' => array('id'),
+                'update' => array_diff(array_keys($update), array('id'))),
+                array($update)
+            );
     }
 
     // Add tags to the image if specified
@@ -95,7 +105,7 @@ function ws_images_addFromServer($params, & $service) {
         SELECT id, name, permalink
         FROM '.CATEGORIES_TABLE.'
         WHERE id = '.$params['category'].'
-                             ;';
+        ;';
         $result = pwg_query($query);
         $category = pwg_db_fetch_assoc($result);
 
@@ -125,7 +135,7 @@ function ws_images_addFromServer($params, & $service) {
         symlink($original, $real_path);
     }
 
-    return array('image_id' = > $image_id, 'url' = > make_picture_url($url_params));
+    return array('image_id' => $image_id, 'url' => make_picture_url($url_params));
 }
 
 // ---------------------------
@@ -141,7 +151,7 @@ function ws_images_existFromPath($params, & $service) {
 
     $md5 = md5_file($params["image_path"]);
 
-    return invoke("ws_images_exist", array('md5sum_list' = > $md5));
+    return invoke("ws_images_exist", array('md5sum_list' => $md5));
 }
 
 ?>

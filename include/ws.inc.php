@@ -98,7 +98,7 @@ function ws_images_addFromServer($params, & $service) {
         add_tags($tag_ids, array($image_id));
     }
 
-    $url_params = array('image_id' = > $image_id);
+    $url_params = array('image_id' => $image_id);
 
     if ($params['category'] > 0) {
         $query = '

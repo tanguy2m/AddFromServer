@@ -114,11 +114,13 @@ table.table tr.row td.site{
   text-align: center;
 }
 
-td.site.pending{
-  background-image:url(admin/themes/clear/icon/help.png);
+td.site{
   background-repeat:no-repeat;
   background-position:center center;
 }
+
+td.site.pending { background-image:url(../../../admin/themes/clear/icon/help.png); }
+td.site.missing { background-image:url(../../../admin/themes/clear/icon/delete.png); }
 
 table.table tr.header img {
   vertical-align:bottom;

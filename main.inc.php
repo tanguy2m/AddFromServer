@@ -45,9 +45,11 @@ function new_check_exists($arr) {
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
         array(
-            'image_path' => array()
+            'path' => array(),
+            'images_names' => array()
         ),
-        '<b>Admin only</b><br>Permet de vérifier la présence d\'une photo sur Piwigo à partir de son chemin sur le serveur.'
+        '<b>Admin only</b><br>
+        Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.'
     );
 }
 

@@ -28,32 +28,37 @@ $(function() {
     // Récupération de l'état dans Piwigo ou pas
     // -----------------------------------------
     // Fait par le client car temps masqué
-    var md5_list = [];
+    var files_list = [];
     var maxNumber = 10; // Nombre max de fichiers par requête
-    $("td.md5.row").each(function(index) {
-        if (index % maxNumber === 0) md5_list[index / maxNumber] = "";
-        md5_list[(index - index % maxNumber) / maxNumber] += $(this).attr('id') + ';';
+    $("td.site.pending").each(function(index) {
+        if (index % maxNumber === 0) files_list[index / maxNumber] = "";
+        files_list[(index - index % maxNumber) / maxNumber] +=$(this).closest('tr').attr('id') + ';';
     });
 
-    if (md5_list.length > 0) { // Si il y a au moins une photo, requête
+    if (files_list.length > 0) { // Si il y a au moins une photo, requête
         var missing = 0;
-        $.each(md5_list, function(index, MD5_chain) {
+        $.each(files_list, function(index, filesNames) {
             $.ajaxq("checkExist", {
                 url: './../../../ws.php?format=json',
                 // Remontée jusqu'à la racine de Piwigo
                 data: {
-                    method: 'pwg.images.exist',
-                    md5sum_list: MD5_chain
+                    method: 'pwg.images.existFromPath',
+                    path: '',
+                    images_names: filesNames
                 },
                 datatype: 'json',
                 success: function(data) {
                     if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
-                        $.each(jQuery.parseJSON(data).result, function(md5_value, resultat) {
+                        $.each(jQuery.parseJSON(data).result, function(file_name, resultat) {
                             if (resultat > 0) {
-                                $("#" + md5_value).append('<a href="./../../../picture.php?/' + resultat + '" target="_blank" title="Photo dans Piwigo"></a>');
-                                $("#" + md5_value).children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
+                                $("#" + file_name + " td.site")
+                                .removeClass("pending")
+                                .append('<a href="./../../../picture.php?/' + resultat + '" target="_blank" title="Photo dans Piwigo"></a>')
+                                .children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
                             }
                             else {
+                                $("#" + file_name + " td.site")
+                                .addClass("missing");
                                 missing++;
                             }
                         });

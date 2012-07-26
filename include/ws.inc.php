@@ -143,15 +143,30 @@ function ws_images_addFromServer($params, &$service) {
 // ---------------------------
 
 function ws_images_existFromPath($params, &$service) {
-
-    // Image path verification
-    if (!is_file($params['image_path'])) {
-        return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid");
+    
+    // Récupération d'un tableau de noms de fichiers
+    $file_names = preg_split(
+        '/[\s,;\|]/',
+        $params['images_names'],
+        -1,
+        PREG_SPLIT_NO_EMPTY
+    );
+    $file_names = array_flip($file_names);
+    
+    foreach($file_names as $file_name => $value) {
+        
+        // Image path verification
+        if (!is_file($params['path'].$file_name)) {
+            return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid for ".$file_name);
+        }
+        
+        $md5 = md5_file($params['path'].$file_name);
+        $md5_result = $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
+        $file_names[$file_name] = $md5_result[$md5];
     }
-
-    $md5 = md5_file($params["image_path"]);
-
-    return $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
+ 
+    return $file_names;
+     
 }
 
 ?>

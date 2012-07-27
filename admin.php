@@ -36,7 +36,12 @@
   // +-----------------------------------------------------------------------+
   // | Tabs                                                                  |
   // +-----------------------------------------------------------------------+
-	
+
+  define(
+      'PHOTOS_ADD_BASE_URL',
+      get_root_url().'admin.php?page=photos_add'
+  );
+
   include_once(PHPWG_ROOT_PATH.'admin/include/tabsheet.class.php');
   $tabsheet = new tabsheet();
   $tabsheet->set_id('photos_add');

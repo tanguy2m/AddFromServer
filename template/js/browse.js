@@ -29,7 +29,7 @@ $(function() {
     // -----------------------------------------
     // Fait par le client car temps masqué
     var files_list = [];
-    var maxNumber = 10; // Nombre max de fichiers par requête
+    var maxNumber = 20; // Nombre max de fichiers par requête
     $("td.site.pending").each(function(index) {
         if (index % maxNumber === 0) files_list[index / maxNumber] = "";
         files_list[(index - index % maxNumber) / maxNumber] +=$(this).closest('tr').attr('id') + ';';

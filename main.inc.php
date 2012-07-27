@@ -69,7 +69,7 @@ function add_entry_admin_menu($menu) {
 
 // Add a new tab in photos_add page
 add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
-function addFromServer($sheets, $id) { 
+function addFromServer_add_tab($sheets, $id) { 
     
     if ($id == 'photos_add') {
         $sheets['rotate'] = array(

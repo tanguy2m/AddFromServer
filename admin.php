@@ -33,6 +33,16 @@
   
   $plugin_url = get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__));
 
+  // +-----------------------------------------------------------------------+
+  // | Tabs                                                                  |
+  // +-----------------------------------------------------------------------+
+	
+  include_once(PHPWG_ROOT_PATH.'admin/include/tabsheet.class.php');
+  $tabsheet = new tabsheet();
+  $tabsheet->set_id('photos_add');
+  $tabsheet->select('Depuis serveur');
+  $tabsheet->assign();
+
   $template->assign('plugin_folder',ADD_FROM_SERVER_PATH); // Variable nécessaire pour les 2 templates
   
   if (isset($_POST['dossier'])) // Le formulaire de la page 'select.tpl' a été soumis

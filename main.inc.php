@@ -54,19 +54,6 @@ function new_check_exists($arr) {
     );
 }
 
-// Add a new entry in Admin plugins menu
-add_event_handler('get_admin_plugin_menu_links', 'add_entry_admin_menu');
-function add_entry_admin_menu($menu) {
-    array_push(
-        $menu,
-        array(
-            'NAME' => 'Ajouter photos du NAS',
-            'URL' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
-        )
-    );
-    return $menu;
-}
-
 // Add a new tab in photos_add page
 add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
 function addFromServer_add_tab($sheets, $id) { 

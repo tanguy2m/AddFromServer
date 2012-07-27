@@ -144,6 +144,8 @@ function ws_images_addFromServer($params, &$service) {
 
 function ws_images_existFromPath($params, &$service) {
     
+    global $conf;
+    
     if (!is_admin()){
         return new PwgError(401, 'Access denied');
     }
@@ -159,12 +161,14 @@ function ws_images_existFromPath($params, &$service) {
     
     foreach($file_names as $file_name => $value) {
         
+        $full_path = $conf['AddFromServer']['photos_local_folder'].$params['path'].$file_name;
+        
         // Image path verification
-        if (!is_file($params['path'].$file_name)) {
+        if (!is_file($full_path)) {
             return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid for ".$file_name);
         }
         
-        $md5 = md5_file($params['path'].$file_name);
+        $md5 = md5_file($full_path);
         $result = $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
         
         if ( strtolower( @get_class($result) )!='pwgerror') {

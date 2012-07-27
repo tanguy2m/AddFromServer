@@ -49,7 +49,8 @@ function new_check_exists($arr) {
             'images_names' => array()
         ),
         '<b>Admin only</b><br>
-        Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.'
+        Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.<br>
+        Le paramètre path est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'
     );
 }
 

@@ -43,7 +43,7 @@ $(function() {
                 // Remontée jusqu'à la racine de Piwigo
                 data: {
                     method: 'pwg.images.existFromPath',
-                    path: '',
+                    path: decodeURIComponent($('tr.row.one.header td.name a').attr('href').substring(fullLink.indexOf("&dir=photos/") + 12)),
                     images_names: filesNames
                 },
                 datatype: 'json',

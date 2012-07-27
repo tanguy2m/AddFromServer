@@ -51,14 +51,14 @@ $(function() {
                     if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
                         $.each(jQuery.parseJSON(data).result, function(file_name, resultat) {
                             if (resultat > 0) {
-                                $("#" + file_name + " td.site")
+                                $(document.getElementById(file_name)).find('td.site') //Permet de gérer les ID avec caractères spéciaux
                                 .removeClass("pending")
                                 .append('<a href="./../../../picture.php?/' + resultat + '" target="_blank" title="Photo dans Piwigo"></a>')
                                 .children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
                             }
                             else {
-                                $("#" + file_name + " td.site")
-                                .addClass("missing");
+                                $(document.getElementById(file_name)).find('td.site')
+                                .removeClass("pending").addClass("missing");
                                 missing++;
                             }
                         });

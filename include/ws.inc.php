@@ -144,6 +144,10 @@ function ws_images_addFromServer($params, &$service) {
 
 function ws_images_existFromPath($params, &$service) {
     
+    if (!is_admin()){
+        return new PwgError(401, 'Access denied');
+    }
+    
     // Récupération d'un tableau de noms de fichiers
     $file_names = preg_split(
         '/[\s,;\|]/',
@@ -161,8 +165,14 @@ function ws_images_existFromPath($params, &$service) {
         }
         
         $md5 = md5_file($params['path'].$file_name);
-        $md5_result = $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
-        $file_names[$file_name] = $md5_result[$md5];
+        $result = $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
+        
+        if ( strtolower( @get_class($result) )!='pwgerror') {
+            $file_names[$file_name] = $result[$md5];
+	    }
+        else {
+            return $result;
+        }        
     }
  
     return $file_names;

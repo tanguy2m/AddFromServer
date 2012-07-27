@@ -67,4 +67,18 @@ function add_entry_admin_menu($menu) {
     return $menu;
 }
 
+// Add a new tab in photos_add page
+add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
+function addFromServer($sheets, $id) { 
+    
+    if ($id == 'photos_add') {
+        $sheets['rotate'] = array(
+            'caption' => l10n('Depuis serveur'),
+            'url' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
+        );
+    }	 
+    
+    return $sheets;
+}
+
 ?>

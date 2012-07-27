@@ -72,7 +72,7 @@ add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
 function addFromServer_add_tab($sheets, $id) { 
     
     if ($id == 'photos_add') {
-        $sheets['rotate'] = array(
+        $sheets['addFromServer'] = array(
             'caption' => l10n('Depuis serveur'),
             'url' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
         );

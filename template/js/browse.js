@@ -36,7 +36,6 @@ $(function() {
     });
 
     if (files_list.length > 0) { // Si il y a au moins une photo, requête
-        var missing = 0;
         $.each(files_list, function(index, filesNames) {
             $.ajaxq("checkExist", {
                 url: './../../../ws.php?format=json',
@@ -59,10 +58,9 @@ $(function() {
                             else {
                                 $(document.getElementById(file_name)).find('td.site')
                                 .removeClass("pending").addClass("missing");
-                                missing++;
                             }
                         });
-                        parent.updateMissingNb(missing);
+                        parent.updateMissingNb($('td.site.missing').length);
                     }
                     else {
                         alert("erreur ws");
@@ -87,4 +85,5 @@ parent.reloadDossier = removeRow;
 
 function removeRow(id) {
     $('tr[id="' + id + '"]').remove();
+    parent.updateMissingNb($('td.site.missing').length);
 }

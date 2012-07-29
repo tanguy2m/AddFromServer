@@ -216,6 +216,7 @@ function displayInfoFichier(filename) {
 // --------------------------------------- //
 
 function updateMissingNb(number) {
+    $("#nbTotal").html(number);
     if (number > 1) $(".titrePage h2 span").html("- " + number + " photos absentes de Piwigo");
     else if (number == 1) $(".titrePage h2 span").html("- " + number + " photo absente de Piwigo");
     else $(".titrePage h2 span").html("- Toutes les photos sont déjà dans Piwigo");
@@ -227,5 +228,60 @@ function razMissingNb() {
 
 function updateChemin(path) {
     $("#chemin").html(path);
-    $("#dossier").val($("#fullDir").text());
 }
+
+// --------------------------------------- //
+//         Ajout des photos au site        //
+// --------------------------------------- //
+
+$("input#launch").click(function() {
+    
+  $("fieldset#album").hide();
+  $("input#launch").hide();
+  $("#nbRestant").html($("nbTotal").html());
+  $("fieldset#progress").show();
+  
+  $("#browser").contents().find('td.site.missing').each(function (index) {
+    
+    var image_name = $(this).closest('a.item.file').html();
+    var category_id = $("select#albumSelect option:selected").val();
+    
+    $.ajaxq("fichiers",{
+      url: 'ws.php?format=json',
+      data: { method: 'pwg.images.addFromServer',
+              image_path: $("#fullDir").text() +  image_name,
+              category: category_id,
+              level: $("select#level option:selected").val(),
+              tags: systematic_tag //Variable déclarée dans select.tpl
+			},
+            
+     beforeSend: jQuery.proxy(function() {
+		$(this).removeClass("missing").addClass("sending");
+     },$(this)),
+      
+      datatype: 'json',
+      
+      success: jQuery.proxy(function(data) {
+        var status = jQuery.parseJSON(data).stat;
+        
+        if (status == "ok") // Si la requête n'a pas échoué
+          document.getElementById('browser').contentWindow.addPwgLink($(this),jQuery.parseJSON(data).result.image_id);
+        else {
+          $(this).removeClass("sending").addClass("error");
+          errorNotif(image_name, jQuery.parseJSON(data).message);
+		}
+        
+		var remaining = parseInt($("#nbRestant").html());
+		if(remaining > 1)
+			$("#nbRestant").html(remaining-1);
+		else {
+            var nbTotal = $("#nbTotal").html();
+            $("#status").empty()
+            .html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les "
+                + nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
+		}
+      },$(this))
+      
+    });
+  });
+});

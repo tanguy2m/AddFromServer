@@ -1,3 +1,4 @@
+{combine_script id='ajaxq' load='header' require='jquery' path="$plugin_folder/template/js/jquery.ajaxq.js"}
 {combine_script id='treat' load='header' require='jquery' path="$plugin_folder/template/js/select.js"}
 {combine_script id='jquery.jgrowl' load='footer' require='jquery' path='themes/default/js/plugins/jquery.jgrowl_minimized.js'}
 {combine_css path="admin/themes/default/uploadify.jGrowl.css"}
@@ -18,6 +19,7 @@
 	pluginPath='{/literal}{$plugin_folder}{literal}';
 	photosPath='{/literal}{$conf.photos_local_folder}{literal}';
 	photosBinPath='{/literal}{$conf.photos_bin_folder}{literal}';
+    systematic_tag='{/literal}{$conf.systematic_tag}{literal}';
 </script>
 {/literal}{/html_head}
 
@@ -54,28 +56,35 @@
   </div>
 </div>
   
-<form method="post" action="{$treat_page}">
-  <input type="hidden" id="dossier" name="dossier" value="">
-  
-  <fieldset id="album">
-      <legend>Paramètres Piwigo</legend>
+<fieldset id="album">
+    <legend>Paramètres Piwigo</legend>
     
   <div>
-      <span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
-    Choix de l'album: 
+    <span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
+      Choix de l'album: 
       <select id="albumSelect" name="category">
         {html_options options=$category_options selected=$category_options_selected}
       </select>   ... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
   </div>
   
-    <div id="level">
+  <div id="level">
     Qui peut voir ces photos?
       <select name="level" size="1">
         {html_options options=$level_options selected=$level_options_selected}
       </select>
   </div>
-  </fieldset>
-  
-  <p id="submit"><input type="submit" value="Ajouter ce dossier à Piwigo"></p>
-  
+</fieldset>
+
+<form>
+  <p id="submit"><input type="button" id="launch" value="Ajouter ce dossier à Piwigo"></p>
 </form>
+
+<fieldset id="progress" style="display:none">
+    <legend>Ajout des photos au serveur</legend>
+
+  <div id="status">
+      Nombre de photos à envoyer: <span id="nbRestant"></span>/<span id="nbTotal"></span>
+  </div>
+
+</fieldset>
+

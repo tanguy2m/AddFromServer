@@ -261,7 +261,8 @@ $("input#launch").click(function() {
 			},
             
      beforeSend: jQuery.proxy(function() {
-		$(this).removeClass("missing").addClass("sending");
+		$(this).removeClass("missing")
+        .addClass("sending").attr('title','En cours d\'envoi');
      },$(this)),
       
       datatype: 'json',
@@ -274,7 +275,8 @@ $("input#launch").click(function() {
         if (status == "ok") // Si la requête n'a pas échoué
           document.getElementById('browser').contentWindow.addPwgLink($(this),jQuery.parseJSON(data).result.image_id);
         else {
-          $(this).addClass("error");
+          $(this).addClass("error")
+          .attr('title','Erreur lors du transfert');
           errorNotif(image_name, jQuery.parseJSON(data).message);
 		}
         

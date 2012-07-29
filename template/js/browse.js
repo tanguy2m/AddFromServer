@@ -77,7 +77,7 @@ $(function() {
                         parent.updateMissingNb();
                     }
                     else {
-                        alert("erreur ws");
+                        parent.errorNotif("Erreur "+jQuery.parseJSON(data).err, jQuery.parseJSON(data).message);
                     }
                 }
             });

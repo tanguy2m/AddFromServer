@@ -217,14 +217,14 @@ function displayInfoFichier(filename) {
 
 function updateMissingNb() {
     var number = $("#browser").contents().find('td.site.missing').length;
-    $(".titrePage h2 span").attr("id",number);
-    if (number > 1) $(".titrePage h2 span").html("- " + number + " photos absentes de Piwigo");
-    else if (number == 1) $(".titrePage h2 span").html("- " + number + " photo absente de Piwigo");
-    else $(".titrePage h2 span").html("- Toutes les photos sont déjà dans Piwigo");
+    $(".titrePage h2").attr("id",number);
+    if (number > 1) $(".titrePage h2").html(number + " photos de ce dossier absentes de Piwigo");
+    else if (number == 1) $(".titrePage h2").html(number + " photo de ce dossier absente de Piwigo");
+    else $(".titrePage h2").html("Toutes les photos de ce dossier sont déjà dans Piwigo");
 }
 
 function razMissingNb() {
-    $(".titrePage h2 span").empty();
+    $(".titrePage h2").empty();
 }
 
 function updateChemin(path) {
@@ -238,7 +238,7 @@ function updateChemin(path) {
 $(function() {
 $("input#launch").click(function() {
     
-  var nbTotal = $(".titrePage h2 span").attr("id");
+  var nbTotal = $(".titrePage h2").attr("id");
   
   $("fieldset#album").hide();
   $("p#submit").hide();

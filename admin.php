@@ -18,6 +18,7 @@
   $tabsheet = new tabsheet();
   $tabsheet->set_id('photos_add');
   $tabsheet->select('addFromServer');
+  $tabsheet->assign();
   
   // +-----------------------------------------------------------------------+
   // | Variables                                                             |

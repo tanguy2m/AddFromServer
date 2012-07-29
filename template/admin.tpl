@@ -15,7 +15,7 @@
 {/literal}{/html_head}
 
 <div class="titrePage">
-  <h2>Préparation du dossier <span></span></h2>
+  <h2></h2>
 </div>
 
 <fieldset id="origine" class="reference">

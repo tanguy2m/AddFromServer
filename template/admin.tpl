@@ -73,9 +73,11 @@
 <fieldset id="progress" style="display:none">
     <legend>Ajout des photos au serveur</legend>
 
-  <div id="status">
+  <div id="status" class="start">
       Nombre de photos à envoyer: <span id="nbRestant"></span>/<span id="nbTotal"></span>
   </div>
+
+ <div id="status" class="end" style="display:none"></div>
 
 </fieldset>
 

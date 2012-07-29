@@ -9,7 +9,10 @@ function addPwgLink(cell,photo_ID) {
 }
 
 $(function() {
-
+    
+    // Reset du parent si l'upload est fini
+    parent.reset();
+    
     // --------------------------------
     // Loading and Unloading the Iframe
     // --------------------------------
@@ -70,7 +73,7 @@ $(function() {
                                 .removeClass("pending").addClass("missing");
                             }
                         });
-                        parent.updateMissingNb($('td.site.missing').length);
+                        parent.updateMissingNb();
                     }
                     else {
                         alert("erreur ws");
@@ -95,5 +98,5 @@ parent.reloadDossier = removeRow;
 
 function removeRow(id) {
     $('tr[id="' + id + '"]').remove();
-    parent.updateMissingNb($('td.site.missing').length);
+    parent.updateMissingNb();
 }

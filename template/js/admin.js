@@ -234,6 +234,7 @@ function updateChemin(path) {
 //         Ajout des photos au site        //
 // --------------------------------------- //
 
+$(function() {
 $("input#launch").click(function() {
     
   $("fieldset#album").hide();
@@ -284,4 +285,5 @@ $("input#launch").click(function() {
       
     });
   });
+});
 });

@@ -38,7 +38,7 @@
     'level_options'=> get_privacy_level_options(), // Récupération des différents niveaux de visibilité
     'level_options_selected' => array(8) // Par défaut, visibilité = "Admins only"
   ));
-  $template->set_filenames(array('plugin_admin_content' => dirname(__FILE__) . '/template/select.tpl'));
+  $template->set_filenames(array('plugin_admin_content' => dirname(__FILE__) . '/template/admin.tpl'));
  
   $template->assign_var_from_handle('ADMIN_CONTENT', 'plugin_admin_content');
   

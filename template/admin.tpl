@@ -1,20 +1,11 @@
 {combine_script id='ajaxq' load='header' require='jquery' path="$plugin_folder/template/js/jquery.ajaxq.js"}
-{combine_script id='treat' load='header' require='jquery' path="$plugin_folder/template/js/select.js"}
+{combine_script id='treat' load='header' require='jquery' path="$plugin_folder/template/js/admin.js"}
 {combine_script id='jquery.jgrowl' load='footer' require='jquery' path='themes/default/js/plugins/jquery.jgrowl_minimized.js'}
 {combine_css path="admin/themes/default/uploadify.jGrowl.css"}
+{combine_css path="$plugin_folder/template/admin.css"}
 {include file='include/colorbox.inc.tpl'}
 
 {html_head}{literal}
-<style type="text/css">
-  iframe {float:left; border: 0px; width: 460px; max-height: 500px;}
-  #waitBrowser {position:absolute; top:0; left:0; z-index:1; width:100%; height:100%; opacity:0.8;}
-  div#cheminFichier {margin-bottom: 8px;}
-  .loading {background: url('themes/default/images/ajax-loader-small.gif') no-repeat right top;}
-  .loadingBig {background: url('admin/themes/default/images/ajax-loader-bar.gif') no-repeat center center;}
-  #level{margin-top: 10px;}
-  .reference {position:relative;}
-  #suppr{position:absolute; top:-4px; right:0; cursor:pointer;}
-</style>
 <script type="text/javascript">
 	pluginPath='{/literal}{$plugin_folder}{literal}';
 	photosPath='{/literal}{$conf.photos_local_folder}{literal}';

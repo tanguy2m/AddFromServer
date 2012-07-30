@@ -178,12 +178,16 @@ function displayNoThumb() {
 
 var thumb = new Image();
 
+function buildThumbURL(size) {
+   return pluginPath + 'include/thumb.php?max=' + size + '&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").text()); 
+}
+
 function displayInfoFichier(filename) {
     // Affichage du chemin vers le fichier
     $('#cheminFichier').html(filename);
 
     if ($("#cheminFichier").hasClass("loading")) {
-        $(thumb).attr('src', pluginPath + 'include/thumb.php?max=480&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()));
+        $(thumb).attr('src', buildThumbURL(480));
     }
     else {
         $("#miniature a").remove(); // Suppression de l'image existante
@@ -195,7 +199,7 @@ function displayInfoFichier(filename) {
             $("#cheminFichier").removeClass('loading');
             $('#miniature')
             // Ajout du lien vers l'image 'HD'
-            .append('<a href=\"' + pluginPath + 'include/thumb.php?max=800&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()) + '\" target="_blank"></a>');
+            .append('<a href=\"' + buildThumbURL(800) + '\" target="_blank"></a>');
             $('#miniature a').append(this); // Insertion de l'image dans le div #miniature
             $(this).fadeIn(); // Petit effet à l'ouverture de l'image
             $("#suppr").show();
@@ -207,7 +211,7 @@ function displayInfoFichier(filename) {
         })
 
         // *finally*, set the src attribute of the new image to our image
-        .attr('src', pluginPath + 'include/thumb.php?max=480&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").html()));
+        .attr('src', buildThumbURL(480));
     }
 }
 

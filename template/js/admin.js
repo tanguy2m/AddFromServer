@@ -220,7 +220,7 @@ function displayInfoFichier(filename) {
 // --------------------------------------- //
 
 function updateMissingNb() {
-    var number = $("#browser").contents().find('td.site.missing').length;
+    var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
     $(".titrePage h2").attr("id",number);
     if (number > 1) $(".titrePage h2").html(number + " photos de ce dossier absentes de Piwigo");
     else if (number == 1) $(".titrePage h2").html(number + " photo de ce dossier absente de Piwigo");

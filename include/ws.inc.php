@@ -153,7 +153,7 @@ function ws_images_existFromPath($params, &$service) {
     // Récupération d'un tableau de noms de fichiers
     $file_names = preg_split(
         '/[,;\|]/',
-        $params['images_names'],
+        stripslashes($params['images_names']), //Permet de gérer les single quote (remplacé par \' par php)
         -1,
         PREG_SPLIT_NO_EMPTY
     );

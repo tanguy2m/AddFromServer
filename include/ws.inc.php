@@ -12,10 +12,12 @@ function ws_images_addFromServer($params, &$service) {
     if (!is_admin()) {
         return new PwgError(401, 'Access denied');
     }
-
+    
+    $params['image_path'] = stripslashes($params['image_path']);
+    
     // Image path verification
     if (!is_file($params['image_path'])) {
-        return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid");
+        return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid: ".$params['image_path']);
     }
 
     // Image already known ?

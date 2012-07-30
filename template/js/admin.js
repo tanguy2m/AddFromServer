@@ -252,7 +252,7 @@ $("input#launch").click(function() {
   
   $("#browser").contents().find('td.site.missing').each(function (index) {
     
-    var image_name = $(this).closest('tr').find('a.item.file').html();
+    var image_name = $(this).closest('tr').find('a.item.file').text();
     var category_id = $("select#albumSelect option:selected").val();
     
     $.ajaxq("fichiers",{

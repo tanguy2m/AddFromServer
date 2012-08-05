@@ -314,3 +314,12 @@ function reset() {
         $("p#submit").show();      
     }
 }
+
+// ---------------------------------------- //
+// Empêcher la fermeture si upload en cours //
+// ---------------------------------------- //
+
+window.onbeforeunload = function() {
+    if ($("#browser").contents().find('td.site.sending').length > 0)
+        return 'Un ajout de photos est en cours, voulez-vous vraiment quitter la page?';
+}

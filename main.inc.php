@@ -10,14 +10,14 @@ define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/
 global $conf;
 $conf['AddFromServer'] = unserialize($conf['AddFromServer']);
 
-// Récupération de l'event qui liste tous les web-services
-add_event_handler('ws_add_methods', 'new_add_image_ws');
-// Fonction ajoutant le nouveau web-service
-function new_add_image_ws($arr) {
+add_event_handler('ws_add_methods', 'new_ws');
+function new_ws($arr) {
+
     global $conf;
     include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
-
     $service = &$arr[0];
+	
+	// Ajout d'un web-service permettant d'ajouter des images depuis le serveur
     $service -> addMethod(
         'pwg.images.addFromServer',
         'ws_images_addFromServer',
@@ -33,14 +33,8 @@ function new_add_image_ws($arr) {
             'date_creation' => array('default' => null)
         ),
         '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.');
-}
 
-add_event_handler('ws_add_methods', 'new_check_exists');
-function new_check_exists($arr) {
-    global $conf;
-    include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
-
-    $service = &$arr[0];
+	// Ajout d'un web-service permettant de vérifier la présence d'une image dans Piwigo
     $service -> addMethod(
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
@@ -50,7 +44,26 @@ function new_check_exists($arr) {
         ),
         '<b>Admin only</b><br>
         Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.<br>
-        Le paramètre path est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'
+        Le paramètre \'path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'
+    );
+	
+	// Ajout d'un web-service permettant de supprimer des photos de Piwigo et du serveur
+	$service -> addMethod(
+        'pwg.images.deleteFromServer',
+        'ws_images_deleteFromServer',
+        array(
+            'images_ids' => array(),
+			'prefix_path' => array(),
+			'images_paths' => array()
+        ),
+        '<b>Admin only</b><br>
+		POST mandatory<br>
+		Supprime une liste de photos du serveur et de Piwigo si nécessaire.<br>
+		Le paramètre \'images_ids\' est une liste d\'ids d\'images Piwigo. Séparation par un espace ou , ou ; ou |<br>	
+		Le paramètre \'prefix_path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\'] et <b>doit se terminer par un /</b><br>
+		Le paramètre \'images_paths\' est une liste d\'emplacements d\'images relatifs à prefix_path. Séparation par , ou ; ou |<br>
+		Si prefix_path n\'est pas renseigné, le path est relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']
+        '
     );
 }
 

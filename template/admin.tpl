@@ -8,8 +8,6 @@
 {html_head}{literal}
 <script type="text/javascript">
 	pluginPath='{/literal}{$plugin_folder}{literal}';
-	photosPath='{/literal}{$conf.photos_local_folder}{literal}';
-	photosBinPath='{/literal}{$conf.photos_bin_folder}{literal}';
     systematic_tag='{/literal}{$conf.systematic_tag}{literal}';
 </script>
 {/literal}{/html_head}

@@ -115,24 +115,29 @@ jQuery(document).ready(function() {
 // ---------------------------//
 // Fonction permettant de 'supprimer' une image d'un dossier
 
-function suppr(image) {
+function suppr(chemin,image) {
     $.ajax({
-        url: pluginPath + 'include/delete.php',
-        type: 'POST',
-        async: false,
-        // On attend le résultat de cette requête pour continuer
+        url: 'ws.php?format=json',
+        async: false, // On attend le résultat de cette requête pour continuer
         data: {
-            image: image,
-            photosPath: photosPath,
-            photosBinPath: photosBinPath
+			method: 'pwg.images.deleteFromServer',
+			prefix_path: chemin,
+            images_paths: image
         },
         success: function(data) {
             try { // Le parseJSON peut échouer
-                if (jQuery.parseJSON(data).stat == "fail") throw "Message";
+                if (jQuery.parseJSON(data).stat == "fail") throw "PWGerror";
+				infoNotif(image, 'Fichier supprimé');
             }
             catch (error) {
-                if (error == "Message") throw jQuery.parseJSON(data).message;
-                else throw data; // Permet d'afficher toutes les erreurs non catchées
+                if (error == "PWGerror") {
+					var errors = jQuery.parseJSON(data).message;
+					for (err in errors) {
+						errorNotif('Suppression ' + err, errors[err]);
+					}
+                } else {
+					errorNotif('Suppression ' + image, data);
+				}
             }
         }
     });
@@ -140,21 +145,12 @@ function suppr(image) {
 
 $(function() {
     $('#suppr').click(function() {
-
         // Suppression du fichier
-        try {
-            suppr($("#chemin").html() + $("#cheminFichier").html());
-            infoNotif($('#cheminFichier').html(), 'Fichier supprimé');
-        }
-        catch (error) {
-            errorNotif('Suppression ' + $('#cheminFichier').html(), error);
-        }
-
+        suppr($("#chemin").html(),$("#cheminFichier").html());
         // Rafraîchissement de l'iframe
         reloadDossier($('#cheminFichier').html()); //C'est la fonction 'refresh' de l'Iframe
-        // Remise à zéro de la zone propre à l'images
+        // Remise à zéro de la zone propre à l'image
         razFile();
-
     });
 });
 

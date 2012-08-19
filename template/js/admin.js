@@ -126,18 +126,20 @@ function suppr(chemin,image) {
         },
         success: function(data) {
             try { // Le parseJSON peut échouer
-                if (jQuery.parseJSON(data).stat == "fail") throw "PWGerror";
+                if (jQuery.parseJSON(data).stat == "fail") {
+					var errors = jQuery.parseJSON(data).message;
+					if ($.isArray(errors)) {
+						for (err in errors) {
+							errorNotif('Suppression ' + err, errors[err]);
+						}
+					} else {
+						errorNotif('Suppression ' + image, errors);
+					}
+				}
 				infoNotif(image, 'Fichier supprimé');
             }
             catch (error) {
-                if (error == "PWGerror") {
-					var errors = jQuery.parseJSON(data).message;
-					for (err in errors) {
-						errorNotif('Suppression ' + err, errors[err]);
-					}
-                } else {
-					errorNotif('Suppression ' + image, data);
-				}
+				errorNotif('Suppression ' + image, data);
             }
         }
     });

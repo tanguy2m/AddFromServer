@@ -208,6 +208,7 @@ function ws_images_deleteFromServer($params, &$service) {
 	
 	// Tableau d'erreurs
 	$errors_list = array();
+	$success_infos = array();
 	
 	// Tableau des images à déplacer dans la corbeille
 	// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
@@ -283,11 +284,13 @@ function ws_images_deleteFromServer($params, &$service) {
 		if (is_dir($dir) or mkdir($dir, 0777, true)) {
 		
 			// Déplacement du fichier
-			exec("sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1",$out);
+			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
+			exec($commande,$out);
 			if(!empty($out)) {
 				$errors_list[$file_path] = implode("\n", $out);
+			} else {
+				$success_infos[$file_path] = $commande;
 			}
-
 		} else {
 			$errors_list[$file_path] = "Directory creation failed: ".$dir;
 		}
@@ -296,6 +299,8 @@ function ws_images_deleteFromServer($params, &$service) {
 	// Renvoi du tableau d'erreurs si non vide
 	if ( count($errors_list) > 0 ) {
 		return new PwgError(403, $errors_list);
+	} else {
+		return success_infos;
 	}
 }
 

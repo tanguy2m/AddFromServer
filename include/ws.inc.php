@@ -274,6 +274,8 @@ function ws_images_deleteFromServer($params, &$service) {
 		}
 	}
 	
+	$success_infos["Liste des fichiers"] = $paths_to_be_deleted;
+	
 	// Déplacement des fichiers vers la corbeille
 	foreach ($paths_to_be_deleted as $file_path) {
 	

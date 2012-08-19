@@ -132,8 +132,12 @@ function suppr(chemin,image) {
             catch (error) {
                 if (error == "PWGerror") {
 					var errors = jQuery.parseJSON(data).message;
-					for (err in errors) {
-						errorNotif('Suppression ' + err, errors[err]);
+					if( $.isArray(errors) ) {
+						for (err in errors) {
+							errorNotif('Suppression ' + err, errors[err]);
+						}
+					} else {
+						errorNotif('Suppression ' + image, errors);
 					}
                 } else {
 					errorNotif('Suppression ' + image, data);

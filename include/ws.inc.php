@@ -300,7 +300,7 @@ function ws_images_deleteFromServer($params, &$service) {
 	if ( count($errors_list) > 0 ) {
 		return new PwgError(403, $errors_list);
 	} else {
-		return success_infos;
+		return $success_infos;
 	}
 }
 

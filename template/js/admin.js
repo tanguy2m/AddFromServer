@@ -127,16 +127,17 @@ function suppr(chemin,image) {
         success: function(data) {
             try { // Le parseJSON peut échouer
                 if (jQuery.parseJSON(data).stat == "fail") {
-					var errors = jQuery.parseJSON(data).message;
-					if ($.isArray(errors)) {
-						for (err in errors) {
-							errorNotif('Suppression ' + err, errors[err]);
+					var message = jQuery.parseJSON(data).message;
+					if ('errors' in message) { // Le message contient un attribut errors
+						for (err in message.errors) {
+							errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
 						}
 					} else {
-						errorNotif('Suppression ' + image, errors);
+						errorNotif('Suppression ' + image, message);
 					}
+				} else {
+					infoNotif(image, 'Fichier supprimé');
 				}
-				infoNotif(image, 'Fichier supprimé');
             }
             catch (error) {
 				errorNotif('Suppression ' + image, data);

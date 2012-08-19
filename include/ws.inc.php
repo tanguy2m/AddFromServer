@@ -208,7 +208,6 @@ function ws_images_deleteFromServer($params, &$service) {
 	
 	// Tableau d'erreurs
 	$errors_list = array();
-	$success_infos = array();
 	
 	// Tableau des images à déplacer dans la corbeille
 	// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
@@ -251,16 +250,16 @@ function ws_images_deleteFromServer($params, &$service) {
 		
 		// Suppression de tous les éléments de Piwigo
 		include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
-		delete_elements($image_ids, true); // true => suppression de l'image source Piwigo
+		delete_elements($images_ids, true); // true => suppression de l'image source Piwigo
 	}
 	
 	// Appel du web-service par des images_paths
-	if ( !empty($params['images_names']) ) {
+	if ( !empty($params['images_paths']) ) {
 	
 		// Récupération de la liste des chemins d'image à traiter
 		$file_names = preg_split(
 			'/[,;\|]/',
-			stripslashes($params['images_names']), //Permet de gérer les single quote (remplacé par \' par php)
+			stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
 			-1,
 			PREG_SPLIT_NO_EMPTY
 		);
@@ -274,8 +273,6 @@ function ws_images_deleteFromServer($params, &$service) {
 		}
 	}
 	
-	print_r($paths_to_be_deleted);
-	
 	// Déplacement des fichiers vers la corbeille
 	foreach ($paths_to_be_deleted as $file_path) {
 	
@@ -283,26 +280,23 @@ function ws_images_deleteFromServer($params, &$service) {
 		$dir = $photosBinPath.dirname($file_path);
 		
 		// Création du dossier de destination si nécessaire
-		if (is_dir($dir) or mkdir($dir, 0777, true)) {
+		if (is_dir($dir) or @mkdir($dir, 0777, true)) {
 		
 			// Déplacement du fichier
 			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
 			exec($commande,$out);
 			if(!empty($out)) {
-				$errors_list[$file_path] = implode("\n", $out);
-			} else {
-				$success_infos[$file_path] = $commande;
+				$errors_list[] = array("file" => $file_path, "error" => implode("\n", $out));
 			}
+			
 		} else {
-			$errors_list[$file_path] = "Directory creation failed: ".$dir;
+			$errors_list[] = array("file" => $file_path, "error" => "Directory creation failed: ".$dir);
 		}
 	}
 	
 	// Renvoi du tableau d'erreurs si non vide
 	if ( count($errors_list) > 0 ) {
-		return new PwgError(403, $errors_list);
-	} else {
-		return $success_infos;
+		return new PwgError(100, array("errors" => $errors_list));
 	}
 }
 

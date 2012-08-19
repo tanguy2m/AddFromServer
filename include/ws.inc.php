@@ -280,18 +280,16 @@ function ws_images_deleteFromServer($params, &$service) {
 		$dir = $photosBinPath.dirname($file_path);
 		
 		// Création du dossier de destination si nécessaire
-		if( !is_dir($dir) ) { 
-			if (mkdir($dir, 0777, true)) {
-			
-				// Déplacement du fichier
-				exec("sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1",$out);
-				if(!empty($out)) {
-					$errors_list[$file_path] = implode("\n", $out);
-				}
-	
-			} else {
-				$errors_list[$file_path] = "Directory creation failed: ".$dir;
+		if (is_dir($dir) or mkdir($dir, 0777, true)) {
+		
+			// Déplacement du fichier
+			exec("sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1",$out);
+			if(!empty($out)) {
+				$errors_list[$file_path] = implode("\n", $out);
 			}
+
+		} else {
+			$errors_list[$file_path] = "Directory creation failed: ".$dir;
 		}
 	}
 	

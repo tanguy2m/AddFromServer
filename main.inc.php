@@ -52,9 +52,9 @@ function new_ws($arr) {
         'pwg.images.deleteFromServer',
         'ws_images_deleteFromServer',
         array(
-            'images_ids' => array('default' => null),
-			'prefix_path' => array('default' => null),
-			'images_paths' => array('default' => null)
+            'images_ids' => array(),
+			'prefix_path' => array(),
+			'images_paths' => array()
         ),
         '<b>Admin only</b><br>
 		POST mandatory<br>

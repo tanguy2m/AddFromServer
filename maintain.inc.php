@@ -6,7 +6,7 @@
 	{
 		$config = array(
 			'photos_local_folder' => '/c/archive/Photos/',
-			'photos_bin_folder'   => '/c/archive/Recycle Bin/Photos/',
+			'photos_bin_folder'   => '/c/archive/Photos/Poubelle/',
             'systematic_tag' => 'à trier'
 		);
 		

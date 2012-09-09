@@ -10,6 +10,12 @@ define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/
 global $conf;
 $conf['AddFromServer'] = unserialize($conf['AddFromServer']);
 
+// Log function
+function log_line($line) {
+	file_put_contents(PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/log', $line.PHP_EOL, FILE_APPEND);
+}
+
+// Déclaration des web-services
 add_event_handler('ws_add_methods', 'new_ws');
 function new_ws($arr) {
 
@@ -79,6 +85,69 @@ function addFromServer_add_tab($sheets, $id) {
     }	 
     
     return $sheets;
+}
+
+// --------------------------
+//   Catch images deletion
+// --------------------------
+
+global $removeOriginals, $paths_to_be_deleted;
+$removeOriginals = true;
+
+// Tableau des images à déplacer dans la corbeille
+// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
+$paths_to_be_deleted = array();
+
+add_event_handler('begin_delete_elements', 'get_paths');
+function get_paths($ids) {
+
+	global $removeOriginals, $paths_to_be_deleted, $conf;
+	$photosPath = $conf['AddFromServer']['photos_local_folder'];
+	
+	if( $removeOriginals ) {
+		foreach($ids as $image_id) {	
+				// Récupération du chemin vers la photo source de Piwigo
+				$query = '
+					SELECT
+					path
+					FROM '.IMAGES_TABLE.'
+					WHERE id = '.$image_id.'
+					;';
+				list($file_path) = pwg_db_fetch_row(pwg_query($query));
+			
+				// Récupération du chemin original pour suppression
+				if (is_link($file_path)) {
+					array_push($paths_to_be_deleted, str_replace($photosPath, "", readlink($file_path)));
+				}
+		}
+	}
+}
+
+add_event_handler('delete_elements', 'delete_originals');
+function delete_originals($ids) {
+	
+	global $paths_to_be_deleted, $conf;
+	$photosPath = $conf['AddFromServer']['photos_local_folder'];
+	$photosBinPath = $conf['AddFromServer']['photos_bin_folder'];
+	
+	// Déplacement des fichiers vers la corbeille
+	foreach ($paths_to_be_deleted as $file_path) {
+	
+		// Chemin vers le dossier 'Poubelle' correspondant
+		$dir = $photosBinPath.dirname($file_path);
+		
+		// Création du dossier de destination si nécessaire
+		if (is_dir($dir) or @mkdir($dir, 0777, true)) {		
+			// Déplacement du fichier
+			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
+			exec($commande,$out);
+			if(!empty($out)) {
+				log_line($file_path." ### ".implode(PHP_EOL, $out));
+			}
+		} else {
+			log_line($file_path." ### Directory creation failed: ".$dir);
+		}
+	}
 }
 
 ?>

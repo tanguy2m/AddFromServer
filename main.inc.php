@@ -136,6 +136,8 @@ function delete_originals($ids) {
 		// Chemin vers le dossier 'Poubelle' correspondant
 		$dir = $photosBinPath.dirname($file_path);
 		
+		$old_mask = umask(0); // Pour permettre au mkdir d'imposer les permissions
+		
 		// Création du dossier de destination si nécessaire
 		if (is_dir($dir) or @mkdir($dir, 0777, true)) {		
 			// Déplacement du fichier
@@ -147,6 +149,8 @@ function delete_originals($ids) {
 		} else {
 			log_line($file_path." ### Directory creation failed: ".$dir);
 		}
+		
+		umask($old_mask); // Rétablissement du masque d'origine
 	}
 }
 

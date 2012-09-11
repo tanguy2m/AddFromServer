@@ -10,11 +10,6 @@ define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/
 global $conf;
 $conf['AddFromServer'] = unserialize($conf['AddFromServer']);
 
-// Log function
-function log_line($line) {
-	file_put_contents(PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/log', $line.PHP_EOL, FILE_APPEND);
-}
-
 // Déclaration des web-services
 add_event_handler('ws_add_methods', 'new_ws');
 function new_ws($arr) {
@@ -125,32 +120,13 @@ function get_paths($ids) {
 
 add_event_handler('delete_elements', 'delete_originals');
 function delete_originals($ids) {
+
+	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+	global $paths_to_be_deleted;
 	
-	global $paths_to_be_deleted, $conf;
-	$photosPath = $conf['AddFromServer']['photos_local_folder'];
-	$photosBinPath = $conf['AddFromServer']['photos_bin_folder'];
-	
-	// Déplacement des fichiers vers la corbeille
-	foreach ($paths_to_be_deleted as $file_path) {
-	
-		// Chemin vers le dossier 'Poubelle' correspondant
-		$dir = $photosBinPath.dirname($file_path);
-		
-		$old_mask = umask(0); // Pour permettre au mkdir d'imposer les permissions
-		
-		// Création du dossier de destination si nécessaire
-		if (is_dir($dir) or @mkdir($dir, 0777, true)) {		
-			// Déplacement du fichier
-			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
-			exec($commande,$out);
-			if(!empty($out)) {
-				log_line($file_path." ### ".implode(PHP_EOL, $out));
-			}
-		} else {
-			log_line($file_path." ### Directory creation failed: ".$dir);
-		}
-		
-		umask($old_mask); // Rétablissement du masque d'origine
+	$errors_list = move_to_bin($paths_to_be_deleted);
+	foreach ($errors_list as $err) {
+		log_line($err["file"]." ### ".$err["error"]);
 	}
 }
 

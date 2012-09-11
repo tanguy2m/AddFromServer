@@ -190,11 +190,6 @@ function ws_images_existFromPath($params, &$service) {
 // ------------------------------
 
 function ws_images_deleteFromServer($params, &$service) {
-
-	//Récupération des éléments de conf
-	global $conf;
-	$photosPath = $conf['AddFromServer']['photos_local_folder'];
-	$photosBinPath = $conf['AddFromServer']['photos_bin_folder'];
 	
 	// Vérification des droits d'admin
 	if (!is_admin()) {
@@ -202,97 +197,33 @@ function ws_images_deleteFromServer($params, &$service) {
 	}
 	
 	// Vérification des paramètres d'entrée
-	if ( empty($params['images_ids']) and empty($params['images_paths']) ) { // Aucun paramètre spécifié
-		return new PwgError(WS_ERR_INVALID_PARAM, "images_paths or images_ids shall be defined");
+	if ( empty($params['images_paths']) ) { // Aucun paramètre spécifié
+		return new PwgError(WS_ERR_INVALID_PARAM, "images_paths shall be defined");
 	}
-	
-	// Tableau d'erreurs
-	$errors_list = array();
 	
 	// Tableau des images à déplacer dans la corbeille
 	// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
 	$paths_to_be_deleted = array();
+
+	// Récupération de la liste des chemins d'image à traiter
+	$file_names = preg_split(
+		'/[,;\|]/',
+		stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
+		-1,
+		PREG_SPLIT_NO_EMPTY
+	);
 	
-	// Appel du web-service par des images_ids
-	if ( !empty($params['images_ids']) ) {
-		
-		// Récupération de la liste des images_ids
-		$params['images_ids'] = preg_split(
-			'/[\s,;\|]/',
-			$params['images_ids'],
-			-1,
-			PREG_SPLIT_NO_EMPTY
-		);
-		$params['images_ids'] = array_map('intval', $params['images_ids']);	
-		$images_ids = array();
-		foreach ($params['images_ids'] as $image_id) {
-			if ($image_id > 0) {
-				array_push($images_ids, $image_id);
-			}
-		}
+	// Récupération du préfixe éventuel des dossiers
+	$prefix_path = empty($params['prefix_path']) ? '' : $params['prefix_path'];
 	
-		foreach($images_ids as $image_id) {	
-			// Récupération du chemin vers la photo source de Piwigo
-			$query = '
-				SELECT
-				path
-				FROM '.IMAGES_TABLE.'
-				WHERE id = '.$image_id.'
-				;';
-			list($file_path) = pwg_db_fetch_row(pwg_query($query));
-			//TODO: et si l'image_id n'est pas connu ?
-		
-			// Récupération du chemin original pour suppression
-			if (is_link($file_path)) {
-				array_push($paths_to_be_deleted, str_replace($photosPath, "", readlink($file_path)));
-			}
-		}
-		
-		// Suppression de tous les éléments de Piwigo
-		include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
-		delete_elements($images_ids, true); // true => suppression de l'image source Piwigo
-	}
-	
-	// Appel du web-service par des images_paths
-	if ( !empty($params['images_paths']) ) {
-	
-		// Récupération de la liste des chemins d'image à traiter
-		$file_names = preg_split(
-			'/[,;\|]/',
-			stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
-			-1,
-			PREG_SPLIT_NO_EMPTY
-		);
-		
-		// Récupération du préfixe éventuel des dossiers
-		$prefix_path = empty($params['prefix_path']) ? '' : $params['prefix_path'];
-		
-		// Récupération des chemins complets
-		foreach ($file_names as $file_name) {
-			array_push($paths_to_be_deleted, $prefix_path.$file_name);
-		}
+	// Récupération des chemins complets
+	foreach ($file_names as $file_name) {
+		array_push($paths_to_be_deleted, $prefix_path.$file_name);
 	}
 	
 	// Déplacement des fichiers vers la corbeille
-	foreach ($paths_to_be_deleted as $file_path) {
-	
-		// Chemin vers le dossier 'Poubelle' correspondant
-		$dir = $photosBinPath.dirname($file_path);
-		
-		// Création du dossier de destination si nécessaire
-		if (is_dir($dir) or @mkdir($dir, 0777, true)) {
-		
-			// Déplacement du fichier
-			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
-			exec($commande,$out);
-			if(!empty($out)) {
-				$errors_list[] = array("file" => $file_path, "error" => implode("\n", $out));
-			}
-			
-		} else {
-			$errors_list[] = array("file" => $file_path, "error" => "Directory creation failed: ".$dir);
-		}
-	}
+	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+	$errors_list = move_to_bin($paths_to_be_deleted);
 	
 	// Renvoi du tableau d'erreurs si non vide
 	if ( count($errors_list) > 0 ) {

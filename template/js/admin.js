@@ -113,48 +113,44 @@ jQuery(document).ready(function() {
 // ---------------------------//
 //   Suppression de photos    //
 // ---------------------------//
-// Fonction permettant de 'supprimer' une image d'un dossier
-
-function suppr(chemin,image) {
-    $.ajax({
-        url: 'ws.php?format=json',
-        async: false, // On attend le résultat de cette requête pour continuer
-        data: {
-			method: 'pwg.images.deleteFromServer',
-			prefix_path: chemin,
-            images_paths: image
-        },
-        success: function(data) {
-            try { // Le parseJSON peut échouer
-                if (jQuery.parseJSON(data).stat == "fail") {
-					var message = jQuery.parseJSON(data).message;
-					if ('errors' in message) { // Le message contient un attribut errors
-						for (err in message.errors) {
-							errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
-						}
-					} else {
-						errorNotif('Suppression ' + image, message);
-					}
-				} else {
-					infoNotif(image, 'Fichier supprimé');
-				}
-            }
-            catch (error) {
-				errorNotif('Suppression ' + image, data);
-            }
-        }
-    });
-}
 
 $(function() {
-    $('#suppr').click(function() {
-        // Suppression du fichier
-        suppr($("#chemin").html(),$("#cheminFichier").html());
-        // Rafraîchissement de l'iframe
-        reloadDossier($('#cheminFichier').html()); //C'est la fonction 'refresh' de l'Iframe
-        // Remise à zéro de la zone propre à l'image
-        razFile();
+  $('#suppr').click(function() {
+
+    var image = $("#cheminFichier").html();
+    
+    $.ajax({
+      url: 'ws.php?format=json',
+      data: {
+        method: 'pwg.images.deleteFromServer',
+        prefix_path: $("#chemin").html(),
+        images_paths: image
+      },
+      success: function(data) {
+        try { // Le parseJSON peut échouer
+          if (jQuery.parseJSON(data).stat == "fail") {
+            var message = jQuery.parseJSON(data).message;
+            if ('errors' in message) { // Le message contient un attribut errors
+              for (err in message.errors) {
+                errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
+              }
+            } else {
+              errorNotif('Suppression ' + image, message);
+            }
+          } else {
+            infoNotif(image, 'Fichier supprimé');
+            // Rafraîchissement de l'iframe
+            reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
+            // Remise à zéro de la zone propre à l'image
+            razFile();
+          }
+        }
+        catch (error) {
+          errorNotif('Suppression ' + image, data);
+        }
+      }
     });
+  });
 });
 
 // --------------------------------------- //

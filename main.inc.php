@@ -48,19 +48,16 @@ function new_ws($arr) {
         Le paramètre \'path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'
     );
 	
-	// Ajout d'un web-service permettant de supprimer des photos de Piwigo et du serveur
+	// Ajout d'un web-service permettant de supprimer des photos du serveur
 	$service -> addMethod(
         'pwg.images.deleteFromServer',
         'ws_images_deleteFromServer',
         array(
-            'images_ids' => array('default' => null),
 			'prefix_path' => array('default' => null),
 			'images_paths' => array('default' => null)
         ),
         '<b>Admin only</b><br>
-		POST mandatory<br>
-		Supprime une liste de photos du serveur et de Piwigo si nécessaire.<br>
-		Le paramètre \'images_ids\' est une liste d\'ids d\'images Piwigo. Séparation par un espace ou , ou ; ou |<br>	
+		Supprime une liste de photos du serveur<br>
 		Le paramètre \'prefix_path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\'] et <b>doit se terminer par un /</b><br>
 		Le paramètre \'images_paths\' est une liste d\'emplacements d\'images relatifs à prefix_path. Séparation par , ou ; ou |<br>
 		Si prefix_path n\'est pas renseigné, le path est relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']

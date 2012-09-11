@@ -11,7 +11,9 @@ function move_to_bin($files) {
 	$photosPath = $conf['AddFromServer']['photos_local_folder'];
 	$photosBinPath = $conf['AddFromServer']['photos_bin_folder'];
 	
-	// Déplacement des fichiers vers la corbeille
+	$errors_list = array();
+	
+	// DÃ©placement des fichiers vers la corbeille
 	foreach ($files as $file_path) {
 	
 		// Chemin vers le dossier 'Poubelle' correspondant
@@ -19,10 +21,10 @@ function move_to_bin($files) {
 		
 		$old_mask = umask(0); // Pour permettre au mkdir d'imposer les permissions
 		
-		// Création du dossier de destination si nécessaire
+		// CrÃ©ation du dossier de destination si nÃ©cessaire
 		if (is_dir($dir) or @mkdir($dir, 0777, true)) {		
-			// Déplacement du fichier
-			$commande = "sudo -u generic mv '".$photosPath.$file_path."' '".$dir."' 2>&1";
+			// DÃ©placement du fichier
+			$commande = "sudo -u generic mv \"".$photosPath.$file_path."\" \"".$dir."\" 2>&1";
 			exec($commande,$out);
 			if(!empty($out)) {
 				$errors_list[] = array("file" => $file_path, "error" => implode(PHP_EOL, $out));
@@ -31,8 +33,10 @@ function move_to_bin($files) {
 			$errors_list[] = array("file" => $file_path, "error" => "Directory creation failed: ".$dir);
 		}
 		
-		umask($old_mask); // Rétablissement du masque d'origine
+		umask($old_mask); // RÃ©tablissement du masque d'origine
 	}
+	
+	return $errors_list;
 }
 
 ?>

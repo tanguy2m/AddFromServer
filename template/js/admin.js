@@ -118,7 +118,81 @@ $(function() {
   $('#suppr').click(function() {
 
     var image = $("#cheminFichier").html();
+    var $td_site = $(document.getElementById('browser').contentWindow.document.getElementById(image)).find('td:nth-child(5)');
     
+    if($td_site.is('.pending, .sending, .error')) {
+      alert("Cette photo est en cours d'envoi. Impossible de la supprimer");
+      return;
+    }
+    
+    if($td_site.is('.present')) {
+      var answer=confirm("Cette photo est déjà sur Piwigo, êtes-vous sûr de vouloir la supprimer du site?");
+      if (answer == false) {
+        return;
+      } else {
+      
+        // Récupération du token
+        var token;
+        $.ajax({
+          url: 'ws.php?format=json',
+          async: false,
+          data: {
+            method: 'pwg.session.getStatus'
+          },
+          success: function(data) {
+            try { // Le parseJSON peut échouer
+              if (jQuery.parseJSON(data).stat == "fail") {
+                var message = jQuery.parseJSON(data).message;
+                errorNotif('Suppression ' + image, message);
+                //TODO: quitter la fonction
+              } else {
+                token = jQuery.parseJSON(data).result.pwg_token;
+              }
+            }
+            catch (error) {
+              errorNotif('Suppression ' + image, data);
+              //TODO: quitter la fonction
+            }
+          }
+        });
+        
+        // Suppression de l'image Piwigo
+        $.ajax({
+          url: 'ws.php?format=json',
+          data: {
+            method: 'pwg.images.delete',
+            image_id: '1', //TODO
+            images_paths: image
+          },
+          success: function(data) {
+            try { // Le parseJSON peut échouer
+              if (jQuery.parseJSON(data).stat == "fail") {
+                var message = jQuery.parseJSON(data).message;
+                if ('errors' in message) { // Le message contient un attribut errors
+                  for (err in message.errors) {
+                    errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
+                  }
+                } else {
+                  errorNotif('Suppression ' + image, message);
+                }
+              } else {
+                infoNotif(image, 'Fichier supprimé');
+                // Rafraîchissement de l'iframe
+                reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
+                // Remise à zéro de la zone propre à l'image
+                razFile();
+              }
+            }
+            catch (error) {
+              errorNotif('Suppression ' + image, data);
+            }
+          }
+        });
+        return;
+      }
+    }
+    
+    // Dans le dernier cas, suppression de l'image depuis le serveur
     $.ajax({
       url: 'ws.php?format=json',
       data: {
@@ -259,10 +333,10 @@ $("input#launch").click(function() {
               tags: systematic_tag //Variable déclarée dans select.tpl
 			},
             
-     beforeSend: jQuery.proxy(function() {
-		$(this).removeClass("missing")
-        .addClass("sending").attr('title','En cours d\'envoi');
-     },$(this)),
+      beforeSend: jQuery.proxy(function() {
+        $(this).removeClass("missing")
+               .addClass("sending").attr('title','En cours d\'envoi');
+      },$(this)),
       
       datatype: 'json',
       
@@ -277,12 +351,12 @@ $("input#launch").click(function() {
           $(this).addClass("error")
           .attr('title','Erreur lors du transfert');
           errorNotif(image_name, jQuery.parseJSON(data).message);
-		}
+        }
         
-		var remaining = parseInt($("#nbRestant").html());
-		if(remaining > 1)
-			$("#nbRestant").html(remaining-1);
-		else {
+        var remaining = parseInt($("#nbRestant").html());
+        if(remaining > 1)
+          $("#nbRestant").html(remaining-1);
+        else {
             $("#status.start").hide();
             
             $("#status.end").empty()

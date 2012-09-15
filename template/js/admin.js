@@ -114,116 +114,109 @@ jQuery(document).ready(function() {
 //   Suppression de photos    //
 // ---------------------------//
 
+// Suppression d'une photo à partir de son ID
+function supprFromID(image,id) {
+  $.ajax({
+    url: 'ws.php?format=json',
+    data: { method: 'pwg.session.getStatus' },
+    success: function(data) {
+      try { // Le parseJSON peut échouer
+        if (jQuery.parseJSON(data).stat == "fail") {
+          errorNotif('Suppression ' + image, jQuery.parseJSON(data).message);
+        } else {
+          var token = jQuery.parseJSON(data).result.pwg_token;
+          $.ajax({
+            url: 'ws.php?format=json',
+            type: "POST",
+            data: {
+              method: 'pwg.images.delete',
+              image_id: id,
+              pwg_token: token
+            },
+            success: function(answer) {
+              try { // Le parseJSON peut échouer
+                if (jQuery.parseJSON(answer).stat == "fail") {
+                  errorNotif('Suppression ' + image, jQuery.parseJSON(answer).message);
+                } else {
+                  infoNotif(image, 'Fichier supprimé');
+                  // Rafraîchissement de l'iframe
+                  reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
+                  // Remise à zéro de la zone propre à l'image
+                  razFile();
+                }
+              }
+              catch (error) {
+                errorNotif('Suppression ' + image, answer);
+              }
+            }
+          });
+        }
+      }
+      catch (error) {
+        errorNotif('Suppression ' + image, data);
+      }
+    }
+  });
+}
+
+// Suppression d'une image à partir de son chemin
+function supprFromPath(path,image) {
+  $.ajax({
+    url: 'ws.php?format=json',
+    data: {
+      method: 'pwg.images.deleteFromServer',
+      prefix_path: path,
+      images_paths: image
+    },
+    success: function(data) {
+      try { // Le parseJSON peut échouer
+        if (jQuery.parseJSON(data).stat == "fail") {
+          var message = jQuery.parseJSON(data).message;
+          if ('errors' in message) { // Le message contient un attribut errors
+            for (err in message.errors) {
+              errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
+            }
+          } else {
+            errorNotif('Suppression ' + image, message);
+          }
+        } else {
+          infoNotif(image, 'Fichier supprimé');
+          // Rafraîchissement de l'iframe
+          reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
+          // Remise à zéro de la zone propre à l'image
+          razFile();
+        }
+      }
+      catch (error) {
+        errorNotif('Suppression ' + image, data);
+      }
+    }
+  });
+}
+
 $(function() {
   $('#suppr').click(function() {
 
     var image = $("#cheminFichier").html();
     var $td_site = $(document.getElementById('browser').contentWindow.document.getElementById(image)).find('td:nth-child(5)');
     
-    if($td_site.is('.pending, .sending, .error')) {
+    if ($td_site.is('.pending, .sending, .error')) { // La photo est dans une phase d'ajout au site
+    
       alert("Cette photo est en cours d'envoi. Impossible de la supprimer");
-      return;
-    }
-    
-    if($td_site.is('.present')) {
-      var answer=confirm("Cette photo est déjà sur Piwigo, êtes-vous sûr de vouloir la supprimer du site?");
-      if (answer == false) {
-        return;
-      } else {
       
-        // Récupération du token
-        var token;
-        $.ajax({
-          url: 'ws.php?format=json',
-          async: false,
-          data: {
-            method: 'pwg.session.getStatus'
-          },
-          success: function(data) {
-            try { // Le parseJSON peut échouer
-              if (jQuery.parseJSON(data).stat == "fail") {
-                var message = jQuery.parseJSON(data).message;
-                errorNotif('Suppression ' + image, message);
-                //TODO: quitter la fonction
-              } else {
-                token = jQuery.parseJSON(data).result.pwg_token;
-              }
-            }
-            catch (error) {
-              errorNotif('Suppression ' + image, data);
-              //TODO: quitter la fonction
-            }
-          }
-        });
-        
-        // Suppression de l'image Piwigo
-        $.ajax({
-          url: 'ws.php?format=json',
-          data: {
-            method: 'pwg.images.delete',
-            image_id: '1', //TODO
-            images_paths: image
-          },
-          success: function(data) {
-            try { // Le parseJSON peut échouer
-              if (jQuery.parseJSON(data).stat == "fail") {
-                var message = jQuery.parseJSON(data).message;
-                if ('errors' in message) { // Le message contient un attribut errors
-                  for (err in message.errors) {
-                    errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
-                  }
-                } else {
-                  errorNotif('Suppression ' + image, message);
-                }
-              } else {
-                infoNotif(image, 'Fichier supprimé');
-                // Rafraîchissement de l'iframe
-                reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
-                // Remise à zéro de la zone propre à l'image
-                razFile();
-              }
-            }
-            catch (error) {
-              errorNotif('Suppression ' + image, data);
-            }
-          }
-        });
-        return;
+    } else if ($td_site.is('.present')) { // La photo est déjà sur le site
+    
+      var answer=confirm("Cette photo est déjà sur Piwigo, êtes-vous sûr de vouloir la supprimer du site?");
+      if (answer == true) {
+        supprFromID(image,$td_site.find('a:first').attr('id'));
       }
+      
+    } else { // La photo n'est présente que sur le NAS
+    
+      supprFromPath($("#chemin").html(),image);
+      
     }
     
-    // Dans le dernier cas, suppression de l'image depuis le serveur
-    $.ajax({
-      url: 'ws.php?format=json',
-      data: {
-        method: 'pwg.images.deleteFromServer',
-        prefix_path: $("#chemin").html(),
-        images_paths: image
-      },
-      success: function(data) {
-        try { // Le parseJSON peut échouer
-          if (jQuery.parseJSON(data).stat == "fail") {
-            var message = jQuery.parseJSON(data).message;
-            if ('errors' in message) { // Le message contient un attribut errors
-              for (err in message.errors) {
-                errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
-              }
-            } else {
-              errorNotif('Suppression ' + image, message);
-            }
-          } else {
-            infoNotif(image, 'Fichier supprimé');
-            // Rafraîchissement de l'iframe
-            reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
-            // Remise à zéro de la zone propre à l'image
-            razFile();
-          }
-        }
-        catch (error) {
-          errorNotif('Suppression ' + image, data);
-        }
-      }
-    });
   });
 });
 

@@ -44,29 +44,31 @@
     </form>
   </div>
 </div>
-  
-<fieldset id="album">
-    <legend>Paramètres Piwigo</legend>
-    
-  <div>
-    <span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
-      Choix de l'album: 
-      <select id="albumSelect" name="category">
-        {html_options options=$category_options selected=$category_options_selected}
-      </select>   ... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
-  </div>
-  
-  <div id="level">
-    Qui peut voir ces photos?
-      <select name="level" size="1">
-        {html_options options=$level_options selected=$level_options_selected}
-      </select>
-  </div>
-</fieldset>
 
-<form>
-  <p id="submit"><input type="button" id="launch" value="Ajouter ce dossier à Piwigo"></p>
-</form>
+<div id="upload">
+  
+	<fieldset id="album">
+		<legend>Paramètres Piwigo</legend>
+		
+	  <div>
+		<span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
+		  Choix de l'album: 
+		  <select id="albumSelect" name="category">
+			{html_options options=$category_options selected=$category_options_selected}
+		  </select>   ... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
+	  </div>
+	  
+	  <div id="level">
+		Qui peut voir ces photos?
+		  <select name="level" size="1">
+			{html_options options=$level_options selected=$level_options_selected}
+		  </select>
+	  </div>
+	</fieldset>
+	
+	<p><input type="button" id="launch" value="Ajouter ce dossier à Piwigo"></p>
+
+ </div>
 
 <fieldset id="progress" style="display:none">
     <legend>Ajout des photos au serveur</legend>

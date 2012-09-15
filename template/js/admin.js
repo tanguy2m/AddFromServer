@@ -284,13 +284,21 @@ function displayInfoFichier(filename) {
 function updateMissingNb() {
     var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
     $(".titrePage h2").attr("id",number);
-    if (number > 1) $(".titrePage h2").html(number + " photos de ce dossier absentes de Piwigo");
-    else if (number == 1) $(".titrePage h2").html(number + " photo de ce dossier absente de Piwigo");
-    else $(".titrePage h2").html("Toutes les photos de ce dossier sont déjà dans Piwigo");
+    if (number > 1) {
+      $(".titrePage h2").html(number + " photos de ce dossier absentes de Piwigo");
+      $("div#upload").show();
+    } else if (number == 1) {
+      $(".titrePage h2").html(number + " photo de ce dossier absente de Piwigo");
+      $("div#upload").show();
+    } else {
+      $(".titrePage h2").html("Toutes les photos de ce dossier sont déjà dans Piwigo");
+      $("div#upload").hide();
+    }
 }
 
 function razMissingNb() {
     $(".titrePage h2").empty();
+    $("div#upload").hide();
 }
 
 function updateChemin(path) {
@@ -306,8 +314,7 @@ $("input#launch").click(function() {
     
   var nbTotal = $(".titrePage h2").attr("id");
   
-  $("fieldset#album").hide();
-  $("p#submit").hide();
+  $("div#upload").hide();
   $("#nbRestant").html(nbTotal);
   $("#nbTotal").html(nbTotal);
   $("fieldset#progress").show();
@@ -323,7 +330,7 @@ $("input#launch").click(function() {
               image_path: $("#fullDir").text() +  image_name,
               category: category_id,
               level: $("select#level option:selected").val(),
-              tags: systematic_tag //Variable déclarée dans select.tpl
+              tags: systematic_tag //Variable déclarée dans admin.tpl
 			},
             
       beforeSend: jQuery.proxy(function() {
@@ -372,8 +379,7 @@ function reset() {
         $("fieldset#progress").hide();
         $("#status.end").hide();
         $("#status.start").show();
-        $("fieldset#album").show();
-        $("p#submit").show();      
+        $("div#upload").show();      
     }
 }
 

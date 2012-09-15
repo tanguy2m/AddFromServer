@@ -10,6 +10,13 @@ function addPwgLink(cell,photo_ID) {
     .children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
 }
 
+function addDoubleLink(cell,pwg_path) {
+    cell
+    .addClass('error') //TODO: pas judicieux car utilisé pour les erreurs sur upload (et donc image pas présente)
+    .removeAttr("title")
+    .attr("title","Image en double");
+}
+
 $(function() {
     
     // Reset du parent si l'upload est fini
@@ -57,17 +64,21 @@ $(function() {
                 // Remontée jusqu'à la racine de Piwigo
                 data: {
                     method: 'pwg.images.existFromPath',
-                    path: decodeURIComponent($('tr.row.one.header td.name a').attr('href').substring(fullLink.indexOf("&dir=photos/") + 12)),
-                    images_names: filesNames
+                    prefix_path: decodeURIComponent($('tr.row.one.header td.name a').attr('href').substring(fullLink.indexOf("&dir=photos/") + 12)),
+                    images_paths: filesNames
                 },
                 datatype: 'json',
                 success: function(data) {
                     if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
                         $.each(jQuery.parseJSON(data).result, function(file_name, resultat) {
-                            if (resultat > 0) {
+                            if (resultat.id > 0) {
                                 //Pas de JjQuery pour les ID (caractères spéciaux comme '.')
                                 $(document.getElementById(file_name)).find('td.site').removeClass("pending");
-                                addPwgLink($(document.getElementById(file_name)).find('td.site'),resultat);
+                                if (resultat.double == "yes") {
+                                  addDoubleLink($(document.getElementById(file_name)).find('td.site'),resultat.pwg_path);
+                                } else {
+                                  addPwgLink($(document.getElementById(file_name)).find('td.site'),resultat.id);
+                                }
                             }
                             else {
                                 $(document.getElementById(file_name)).find('td.site')

@@ -152,29 +152,53 @@ function ws_images_existFromPath($params, &$service) {
         return new PwgError(401, 'Access denied');
     }
     
+	if ( empty($params['images_paths']) ) { // Aucun paramètre spécifié
+		return new PwgError(WS_ERR_INVALID_PARAM, "images_paths shall be defined");
+	}
+	
     // Récupération d'un tableau de noms de fichiers
     $file_names = preg_split(
         '/[,;\|]/',
-        stripslashes($params['images_names']), //Permet de gérer les single quote (remplacé par \' par php)
+        stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
         -1,
         PREG_SPLIT_NO_EMPTY
     );
     $file_names = array_flip($file_names);
     
+	// Récupération du préfixe éventuel des dossiers
+	$prefix_path = empty($params['prefix_path']) ? '' : $params['prefix_path'];
+	
     foreach($file_names as $file_name => $value) {
         
-        $full_path = $conf['AddFromServer']['photos_local_folder'].$params['path'].$file_name;
+        $full_path = $conf['AddFromServer']['photos_local_folder'].$prefix_path.$file_name;
         
         // Image path verification
         if (!is_file($full_path)) {
-            return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid for ".$file_name);
+            return new PwgError(WS_ERR_INVALID_PARAM, "Fichier inconnu: ".$file_name);
         }
         
         $md5 = md5_file($full_path);
         $result = $service -> invoke("pwg.images.exist", array('md5sum_list' => $md5));
         
         if ( strtolower( @get_class($result) )!='pwgerror') {
-            $file_names[$file_name] = $result[$md5];
+            $file_names[$file_name] = array("id" => $result[$md5]);
+			
+			if(!is_null($result[$md5])) {
+				$query = '
+					SELECT
+					path
+					FROM '.IMAGES_TABLE.'
+					WHERE id = '.$result[$md5].'
+					;';
+				list($path) = pwg_db_fetch_row(pwg_query($query));
+			
+				if(is_link($path) and (readlink($path) != $full_path)) {
+					$file_names[$file_name]["double"] = "yes";
+					$file_names[$file_name]["pwg_path"] = readlink($path);
+				} else {
+					$file_names[$file_name]["double"] ="no";
+				}
+			}
 	    }
         else {
             return $result;

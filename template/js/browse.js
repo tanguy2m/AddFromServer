@@ -12,7 +12,7 @@ function addPwgLink(cell,photo_ID) {
 
 function addDoubleLink(cell,pwg_path) {
     cell
-    .addClass('error') //TODO: pas judicieux car utilisé pour les erreurs sur upload (et donc image pas présente)
+    .addClass('double')
     .removeAttr("title")
     .attr("title","Image en double");
 }

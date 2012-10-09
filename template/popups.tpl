@@ -12,11 +12,3 @@
     </form>
   </div>
 </div>
-
-<div style="display:none">
-  <div id="selectDuplicate" style="text-align:left;padding:1em;">
-      Sélectionner le fichier que vous voulez garder:<br>
-	  Fichier 1<br>
-	  Fichier 2 <br>
-  </div>
-</div>

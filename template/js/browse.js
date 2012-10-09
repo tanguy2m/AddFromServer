@@ -14,16 +14,7 @@ function addDoubleLink(cell,pwg_path) {
     cell
     .addClass('double')
     .removeAttr("title")
-    .attr("title","Image en double")
-    .click(function() {
-      cell.colorbox({
-        inline: true,
-        href: "#addAlbumForm",
-        onComplete: function() {
-          jQuery("input[name=category_name]").focus();
-        }
-      });
-    });
+    .attr("title","Image en double");
 }
 
 $(function() {

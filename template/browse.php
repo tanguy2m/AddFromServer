@@ -874,66 +874,6 @@ class ImageServer
 }
 
 //
-// The class for logging user activity
-//
-class Logger
-{
-  public static function log($message)
-  {
-    global $encodeExplorer;
-    if(strlen(EncodeExplorer::getConfig('log_file')) > 0)
-    {
-      if(Location::isFileWritable(EncodeExplorer::getConfig('log_file')))
-      {
-        $message = "[" . date("Y-m-d h:i:s", mktime()) . "] ".$message." (".$_SERVER["HTTP_USER_AGENT"].")\n";
-        error_log($message, 3, EncodeExplorer::getConfig('log_file'));
-      }
-      else
-        $encodeExplorer->setErrorString("log_file_permission_error");
-    }
-  }
-  
-  public static function logAccess($path, $isDir)
-  {
-    $message = $_SERVER['REMOTE_ADDR']." ".GateKeeper::getUserName()." accessed ";
-    $message .= $isDir?"dir":"file";
-    $message .= " ".$path;
-    Logger::log($message);
-  }
-  
-  public static function logQuery()
-  {
-    if(isset($_POST['log']) && strlen($_POST['log']) > 0)
-    {
-      Logger::logAccess($_POST['log'], false);
-      return true;
-    }
-    else
-      return false;
-  }
-  
-  public static function logCreation($path, $isDir)
-  {
-    $message = $_SERVER['REMOTE_ADDR']." ".GateKeeper::getUserName()." created ";
-    $message .= $isDir?"dir":"file";
-    $message .= " ".$path;
-    Logger::log($message);
-  }
-  
-  public static function emailNotification($path, $isFile)
-  {
-    if(strlen(EncodeExplorer::getConfig('upload_email')) > 0)
-    {
-      $message = "This is a message to let you know that ".GateKeeper::getUserName()." ";
-      $message .= ($isFile?"uploaded a new file":"created a new directory")." in Encode Explorer.\n\n";
-      $message .= "Path : ".$path."\n";
-      $message .= "IP : ".$_SERVER['REMOTE_ADDR']."\n";
-      mail(EncodeExplorer::getConfig('upload_email'), "Upload notification", $message);
-    }
-  }
-}
-
-//
 // The class controls logging in and authentication
 //
 class GateKeeper
@@ -1099,9 +1039,6 @@ class FileManager
       }
       else
       {
-        // Directory successfully created, sending e-mail notification
-        Logger::logCreation($location->getDir(true, false, false, 0).$dirname, true);
-        Logger::emailNotification($location->getDir(true, false, false, 0).$dirname, false);
       }
     }
   }
@@ -1150,8 +1087,6 @@ class FileManager
     else
     {
       chmod($upload_file, 0755);
-      Logger::logCreation($location->getDir(true, false, false, 0).$name, false);
-      Logger::emailNotification($location->getDir(true, false, false, 0).$name, true);
     }
   }
   
@@ -1183,19 +1118,18 @@ class FileManager
   function run($location)
   {
     if(isset($_POST['userdir']) && strlen($_POST['userdir']) > 0){
-      if($location->uploadAllowed() && GateKeeper::isUserLoggedIn() && GateKeeper::isAccessAllowed() && GateKeeper::isNewdirAllowed()){
+      if($location->uploadAllowed()){
         $this->newFolder($location, $_POST['userdir']);
       }
     }
       
     if(isset($_FILES['userfile']['name']) && strlen($_FILES['userfile']['name']) > 0){
-      if($location->uploadAllowed() && GateKeeper::isUserLoggedIn() && GateKeeper::isAccessAllowed() && GateKeeper::isUploadAllowed()){
+      if($location->uploadAllowed()){
         $this->uploadFile($location, $_FILES['userfile']);
       }
     }
     
     if(isset($_GET['del'])){
-      if(GateKeeper::isUserLoggedIn() && GateKeeper::isAccessAllowed() && GateKeeper::isDeleteAllowed()){
         $split_path = Location::splitPath($_GET['del']);
         $path = "";
         for($i = 0; $i < count($split_path); $i++){
@@ -1210,7 +1144,6 @@ class FileManager
           FileManager::delete_dir($path);
         else if(is_file($path))
           FileManager::delete_file($path);
-      }
     }
   }
 }
@@ -1858,31 +1791,7 @@ class EncodeExplorer
     ?>
     <div id="login">
     <form enctype="multipart/form-data" action="<?php print $this->makeLink(false, false, null, null, null, ""); ?>" method="post">
-    <?php 
-    if(GateKeeper::isLoginRequired())
-    {
-      $require_username = false;
-      foreach(EncodeExplorer::getConfig("users") as $user){
-        if($user[0] != null && strlen($user[0]) > 0){
-          $require_username = true;
-          break;
-        }
-      }
-      if($require_username)
-      {
-      ?>
-      <div><label for="user_name"><?php print $this->getString("username"); ?>:</label>
-      <input type="text" name="user_name" value="" id="user_name" /></div>
-      <?php 
-      }
-      ?>
-      <div><label for="user_pass"><?php print $this->getString("password"); ?>:</label>
-      <input type="password" name="user_pass" id="user_pass" /></div>
-      <div><input type="submit" value="<?php print $this->getString("log_in"); ?>" class="button" /></div>
-    </form>
-    </div>
-  <?php 
-    }
+    <?php
   }
 
   //
@@ -1902,8 +1811,7 @@ class EncodeExplorer
 <!-- <meta charset="<?php print $this->getConfig('charset'); ?>" /> -->
 <?php
 if(($this->getConfig('log_file') != null && strlen($this->getConfig('log_file')) > 0)
-  || ($this->getConfig('thumbnails') != null && $this->getConfig('thumbnails') == true && $this->mobile == false)
-  || (GateKeeper::isDeleteAllowed()))
+  || ($this->getConfig('thumbnails') != null && $this->getConfig('thumbnails') == true && $this->mobile == false))
 { 
 ?>
 <script type="text/javascript">
@@ -2237,13 +2145,12 @@ $encodeExplorer->init();
 
 GateKeeper::init();
 
-if(!ImageServer::showImage() && !Logger::logQuery())
+if(!ImageServer::showImage())
 {
   $location = new Location();
   $location->init();
   if(GateKeeper::isAccessAllowed())
   {
-    Logger::logAccess($location->getDir(true, false, false, 0), true);
     $fileManager = new FileManager();
     $fileManager->run($location);
   }

@@ -329,7 +329,7 @@ $("input#launch").click(function() {
       data: { method: 'pwg.images.addFromServer',
               image_path: $("#fullDir").text() +  image_name,
               category: category_id,
-              level: $("select#level option:selected").val(),
+              level: $("select[name=level] option:selected").val(),
               tags: systematic_tag //Variable déclarée dans admin.tpl
 			},
             

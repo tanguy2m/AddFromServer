@@ -68,6 +68,9 @@ $(function() {
                     images_paths: filesNames
                 },
                 datatype: 'json',
+				beforeSend: function() {
+					parent.startScan();
+				},
                 success: function(data) {
                     if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
                         $.each(jQuery.parseJSON(data).result, function(file_name, resultat) {
@@ -91,6 +94,7 @@ $(function() {
                     else {
                         parent.errorNotif("Erreur "+jQuery.parseJSON(data).err, jQuery.parseJSON(data).message);
                     }
+					parent.stopScan();
                 }
             });
         });

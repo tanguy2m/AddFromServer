@@ -120,7 +120,7 @@ td.site{
 }
 
 td.site.pending { background-image:url(../../../admin/themes/clear/icon/help.png); }
-td.site.missing { background-image:url(../../../admin/themes/clear/icon/delete.png); }
+td.site.missing { background-image:url(../../../admin/themes/default/icon/remove_filter.png); }
 td.site.sending { background-image:url(../../../admin/themes/clear/icon/synchronize.png); }
 td.site.error, td.site.double { background-image:url(../../../admin/themes/clear/icon/warning.png); }
 

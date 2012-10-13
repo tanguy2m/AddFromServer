@@ -281,6 +281,14 @@ function displayInfoFichier(filename) {
 //      Mise à jour du panel 'dossier'     //
 // --------------------------------------- //
 
+function startScan() {
+	$("div.titrePage").prepend('<img src="./themes/default/images/ajax-loader-small.gif"/>');
+}
+
+function stopScan() {
+	$("div.titrePage img").remove();
+}
+
 function updateMissingNb() {
     var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
     $(".titrePage h2").attr("id",number);

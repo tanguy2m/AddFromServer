@@ -873,133 +873,6 @@ class ImageServer
   }
 }
 
-//
-// The class controls logging in and authentication
-//
-class GateKeeper
-{
-  public static function init()
-  {
-    global $encodeExplorer;
-    if(strlen(EncodeExplorer::getConfig("session_name")) > 0)
-        session_name(EncodeExplorer::getConfig("session_name"));
-        
-    if(count(EncodeExplorer::getConfig("users")) > 0)
-      session_start();      
-    else
-      return;
-      
-    if(isset($_GET['logout']))
-    {
-      $_SESSION['ee_user_name'] = null;
-      $_SESSION['ee_user_pass'] = null;
-    }
-      
-    if(isset($_POST['user_pass']) && strlen($_POST['user_pass']) > 0)
-    {
-      if(GateKeeper::isUser((isset($_POST['user_name'])?$_POST['user_name']:""), $_POST['user_pass']))
-      {
-        $_SESSION['ee_user_name'] = isset($_POST['user_name'])?$_POST['user_name']:"";
-        $_SESSION['ee_user_pass'] = $_POST['user_pass'];
-        
-        $addr = $_SERVER['PHP_SELF'];
-        if(isset($_GET['m']))
-          $addr .= "?m";
-        else if(isset($_GET['s']))
-          $addr .= "?s";
-        header( "Location: ".$addr);
-      }
-      else
-        $encodeExplorer->setErrorString("wrong_pass");
-    }
-  }
-  
-  public static function isUser($userName, $userPass)
-  {
-    foreach(EncodeExplorer::getConfig("users") as $user)
-    {
-      if($user[1] == $userPass)
-      {
-        if(strlen($userName) == 0 || $userName == $user[0])
-        {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  
-  public static function isLoginRequired()
-  {
-    if(EncodeExplorer::getConfig("require_login") == false){
-      return false;
-    }
-    return true;
-  }
-  
-  public static function isUserLoggedIn()
-  {
-    if(isset($_SESSION['ee_user_name']) && isset($_SESSION['ee_user_pass']))
-    {
-      if(GateKeeper::isUser($_SESSION['ee_user_name'], $_SESSION['ee_user_pass']))
-        return true;
-    }
-    return false;
-  }
-  
-  public static function isAccessAllowed()
-  {
-    if(!GateKeeper::isLoginRequired() || GateKeeper::isUserLoggedIn())
-      return true;
-    return false;
-  }
-  
-  public static function isUploadAllowed(){
-    if(EncodeExplorer::getConfig("upload_enable") == true && GateKeeper::isUserLoggedIn() == true && GateKeeper::getUserStatus() == "admin")
-      return true;
-    return false;
-  }
-  
-  public static function isNewdirAllowed(){
-    if(EncodeExplorer::getConfig("newdir_enable") == true && GateKeeper::isUserLoggedIn() == true && GateKeeper::getUserStatus() == "admin")
-      return true;
-    return false;
-  }
-  
-  public static function isDeleteAllowed(){
-    if(EncodeExplorer::getConfig("delete_enable") == true && GateKeeper::isUserLoggedIn() == true && GateKeeper::getUserStatus() == "admin")
-      return true;
-    return false;
-  }
-  
-  public static function getUserStatus(){
-    if(GateKeeper::isUserLoggedIn() == true && EncodeExplorer::getConfig("users") != null && is_array(EncodeExplorer::getConfig("users"))){
-      foreach(EncodeExplorer::getConfig("users") as $user){
-        if($user[0] != null && $user[0] == $_SESSION['ee_user_name'])
-          return $user[2];
-      }
-    }
-    return null;
-  }
-  
-  public static function getUserName()
-  {
-    if(GateKeeper::isUserLoggedIn() == true && isset($_SESSION['ee_user_name']) && strlen($_SESSION['ee_user_name']) > 0)
-      return $_SESSION['ee_user_name'];
-    if(isset($_SERVER["REMOTE_USER"]) && strlen($_SERVER["REMOTE_USER"]) > 0)
-      return $_SERVER["REMOTE_USER"];
-    if(isset($_SERVER['PHP_AUTH_USER']) && strlen($_SERVER['PHP_AUTH_USER']) > 0)
-      return $_SERVER['PHP_AUTH_USER'];
-    return "an anonymous user";
-  }
-  
-  public static function showLoginBox(){
-    if(!GateKeeper::isUserLoggedIn() && count(EncodeExplorer::getConfig("users")) > 0)
-      return true;
-    return false;
-  }
-}
-
 // 
 // The class for any kind of file managing (new folder, upload, etc).
 //
@@ -1818,14 +1691,6 @@ if(($this->getConfig('log_file') != null && strlen($this->getConfig('log_file'))
 //<![CDATA[
 $(document).ready(function() {
 <?php
-  if(GateKeeper::isDeleteAllowed()){
-?>
-  $('td.del a').click(function(){
-    var answer = confirm('Are you sure you want to delete : \'' + $(this).attr("data-name") + "\' ?");
-    return answer;
-  });
-<?php 
-  }  
   if($this->logging == true)
   { 
 ?>
@@ -1920,12 +1785,7 @@ if(EncodeExplorer::getConfig("secondary_titles") != null && is_array(EncodeExplo
 <?php
 }
 
-// Checking if the user is allowed to access the page, otherwise showing the login box
-if(!GateKeeper::isAccessAllowed())
-{
-  $this->printLoginBox();
-}
-else 
+if(true) 
 {
 if($this->mobile == false && EncodeExplorer::getConfig("show_path") == true)
 {
@@ -1956,9 +1816,6 @@ if($this->mobile == false)
   <td class="name"><?php print $this->makeArrow("name");?></td>
   <td class="size"><?php print $this->makeArrow("size"); ?></td>
   <td class="changed"><?php print $this->makeArrow("mod"); ?></td>
-  <?php if($this->mobile == false && GateKeeper::isDeleteAllowed()){?>
-  <td class="del"><?php print EncodeExplorer::getString("del"); ?></td>
-  <?php } ?>
   <td class="site">Site</td>
 </tr>
 <?php 
@@ -1966,7 +1823,7 @@ if($this->mobile == false)
 ?>
 <tr class="row two">
   <td class="icon"><img alt="dir" src="?img=directory" /></td>
-  <td colspan="<?php print (($this->mobile == true?3:(GateKeeper::isDeleteAllowed()?5:4))); ?>" class="long">
+  <td colspan="<?php print (($this->mobile == true?3:4)); ?>" class="long">
     <a class="item" href="<?php print $this->makeLink(false, false, null, null, null, $this->location->getDir(false, true, false, 1)); ?>">..</a>
   </td>
 </tr>
@@ -1991,9 +1848,6 @@ if($this->dirs)
     print $dir->getNameHtml();
     print "</a>\n";
     print "</td>\n";
-    if($this->mobile == false && GateKeeper::isDeleteAllowed()){
-      print "<td class=\"del\"><a data-name=\"".htmlentities($dir->getName())."\" href=\"".$this->makeLink(false, false, null, null, $this->location->getDir(false, true, false, 0).$dir->getNameEncoded(), $this->location->getDir(false, true, false, 0))."\"><img src=\"?img=del\" alt=\"Delete\" /></a></td>";
-    }
     print "</tr>\n";
     $row =! $row;
   }
@@ -2030,13 +1884,6 @@ if($this->files)
       print "<td class=\"size\">".$this->formatSize($file->getSize())."</td>\n";
       print "<td class=\"changed\">".$this->formatModTime($file->getModTime())."</td>\n";
     }
-    if($this->mobile == false && GateKeeper::isDeleteAllowed()){
-      print "<td class=\"del\">
-        <a data-name=\"".htmlentities($file->getName())."\" href=\"".$this->makeLink(false, false, null, null, $this->location->getDir(false, true, false, 0).$file->getNameEncoded(), $this->location->getDir(false, true, false, 0))."\">
-          <img src=\"?img=del\" alt=\"Delete\" />
-        </a>
-      </td>";
-    }
 	print "<td".($file->isImage()?" class=\"site pending\"":"")."></td>\n";
     print "</tr>\n";
     $row =! $row;
@@ -2056,61 +1903,9 @@ if($this->files)
 ?>
 </div>
 
-<?php
-if(GateKeeper::isAccessAllowed() && GateKeeper::showLoginBox()){
-?>
-<!-- START: Login area -->
-<form enctype="multipart/form-data" method="post">
-  <div id="login_bar">
-  <?php print $this->getString("username"); ?>:
-  <input type="text" name="user_name" value="" id="user_name" />
-  <?php print $this->getString("password"); ?>:
-  <input type="password" name="user_pass" id="user_pass" />
-  <input type="submit" class="submit" value="<?php print $this->getString("log_in"); ?>" />
-  <div class="bar"></div>
-  </div>
-</form>
-<!-- END: Login area -->
-<?php 
-}
-
-if(GateKeeper::isAccessAllowed() && $this->location->uploadAllowed() && (GateKeeper::isUploadAllowed() || GateKeeper::isNewdirAllowed()))
-{
-?>
-<!-- START: Upload area -->
-<form enctype="multipart/form-data" method="post">
-  <div id="upload">
-    <?php 
-    if(GateKeeper::isNewdirAllowed()){
-    ?>
-    <div id="newdir_container">
-      <input name="userdir" type="text" class="upload_dirname" />
-      <input type="submit" value="<?php print $this->getString("make_directory"); ?>" />
-    </div>
-    <?php 
-    }
-    if(GateKeeper::isUploadAllowed()){
-    ?>
-    <div id="upload_container">
-      <input name="userfile" type="file" class="upload_file" />
-      <input type="submit" value="<?php print $this->getString("upload"); ?>" class="upload_sumbit" />
-    </div>
-    <?php 
-    }
-    ?>
-    <div class="bar"></div>
-  </div>
-</form>
-<!-- END: Upload area -->
-<?php
-}
-
-?>
 <!-- START: Info area -->
 <div id="info">
 <?php
-if(GateKeeper::isUserLoggedIn())
-  print "<a href=\"".$this->makeLink(false, true, null, null, null, "")."\">".$this->getString("log_out")."</a> | ";
 
 if(EncodeExplorer::getConfig("mobile_enabled") == true)
 {
@@ -2118,7 +1913,7 @@ if(EncodeExplorer::getConfig("mobile_enabled") == true)
   print ($this->mobile == true)?$this->getString("standard_version"):$this->getString("mobile_version")."\n";
   print "</a> | \n";
 }
-if(GateKeeper::isAccessAllowed() && $this->getConfig("calculate_space_level") > 0 && $this->mobile == false)
+if($this->getConfig("calculate_space_level") > 0 && $this->mobile == false)
 {
   print $this->getString("total_used_space").": ".$this->spaceUsed." MB";
 }
@@ -2143,17 +1938,14 @@ if($this->mobile == false && $this->getConfig("show_load_time") == true)
 $encodeExplorer = new EncodeExplorer();
 $encodeExplorer->init();
 
-GateKeeper::init();
-
 if(!ImageServer::showImage())
 {
   $location = new Location();
   $location->init();
-  if(GateKeeper::isAccessAllowed())
-  {
-    $fileManager = new FileManager();
-    $fileManager->run($location);
-  }
+
+  $fileManager = new FileManager();
+  $fileManager->run($location);
+	
   $encodeExplorer->run($location);
 }
 ?>

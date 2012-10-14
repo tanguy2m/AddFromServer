@@ -49,9 +49,7 @@ $(function() {
     // -----------------------------------------
     // Récupération de l'état dans Piwigo ou pas
     // -----------------------------------------
-    
-    parent.razMissingNb();
-    
+       
     // Fait par le client car temps masqué
     var files_list = [];
     var maxNumber = 20; // Nombre max de fichiers par requête

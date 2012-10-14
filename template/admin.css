@@ -1,6 +1,4 @@
-.titrePage {text-align: right;}
-.titrePage img {margin-top: 8px;}
-.titrePage h2 {float:right;}
+fieldset#album p {float:right;}
 
 iframe {float:left; border: 0px; width: 460px; max-height: 500px;}
 

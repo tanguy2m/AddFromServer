@@ -282,31 +282,31 @@ function displayInfoFichier(filename) {
 // --------------------------------------- //
 
 function startScan() {
-	$("div.titrePage").prepend('<img src="./themes/default/images/ajax-loader-small.gif"/>');
+	$("span#loadingMissing").show();
 }
 
 function stopScan() {
-	$("div.titrePage img").remove();
+	$("span#loadingMissing").hide();
 }
 
 function updateMissingNb() {
     var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
-    $(".titrePage h2").attr("id",number);
+    $("span.missing").attr("id",number);
     if (number > 1) {
-      $(".titrePage h2").html(number + " photos de ce dossier absentes de Piwigo");
-      $("div#upload").show();
+      $("span.missing").html(" - " + number + " photos absentes du site");
+      $("fieldset#album").show();
     } else if (number == 1) {
-      $(".titrePage h2").html(number + " photo de ce dossier absente de Piwigo");
-      $("div#upload").show();
+      $("span.missing").html(" - " + number + " photo absente du site");
+      $("fieldset#album").show();
     } else {
-      $(".titrePage h2").html("Toutes les photos de ce dossier sont déjà dans Piwigo");
-      $("div#upload").hide();
+      $("span.missing").html(" - Toutes les photos sont déjà sur le site");
+      $("fieldset#album").hide();
     }
 }
 
 function razMissingNb() {
-    $(".titrePage h2").empty();
-    $("div#upload").hide();
+    $("span.missing").empty();
+    $("fieldset#album").hide();
 }
 
 function updateChemin(path) {
@@ -320,12 +320,14 @@ function updateChemin(path) {
 $(function() {
 $("input#launch").click(function() {
     
-  var nbTotal = $(".titrePage h2").attr("id");
+  var nbTotal = $("span.missing").attr("id");
   
-  $("div#upload").hide();
+  $("fieldset#album").hide();
   $("#nbRestant").html(nbTotal);
   $("#nbTotal").html(nbTotal);
   $("fieldset#progress").show();
+  
+  $("span.missing").html(" - Ajout des photos au site");
   
   $("#browser").contents().find('td.site.missing').each(function (index) {
     
@@ -362,9 +364,10 @@ $("input#launch").click(function() {
         }
         
         var remaining = parseInt($("#nbRestant").html());
-        if(remaining > 1)
+        if(remaining > 1) {
           $("#nbRestant").html(remaining-1);
-        else {
+          $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
+        } else {
             $("#status.start").hide();
             
             $("#status.end").empty()
@@ -387,7 +390,7 @@ function reset() {
         $("fieldset#progress").hide();
         $("#status.end").hide();
         $("#status.start").show();
-        $("div#upload").show();      
+        $("fieldset#album").show();      
     }
 }
 

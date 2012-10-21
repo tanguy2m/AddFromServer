@@ -16,7 +16,11 @@
 {include file="../../../../$plugin_folder/template/popups.inc.tpl"}
 
 <div class="titrePage">
-  <h2>Dossier: <span id="fullDir">{$conf.photos_local_folder}<span id="chemin"></span></span></h2>
+  <h2>
+    Dossier: <span id="fullDir">
+      <a onclick='changeFolder("");'>{$conf.photos_local_folder}</a><span id="chemin"></span>
+    </span>
+  </h2>
 </div>
 
 <fieldset id="progress" style="display:none">

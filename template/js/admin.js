@@ -309,8 +309,22 @@ function razMissingNb() {
     $("fieldset#album").hide();
 }
 
+function changeFolder(folder) {
+  $("#browser").attr("src",pluginPath+"template/browse.php?dir=photos/"+folder);
+}
+
 function updateChemin(path) {
-    $("#chemin").html(path);
+
+  $("#chemin").empty();
+
+  var folders = path.split("/");
+  
+  $.each(folders, function(index, folder) {
+    if(folder) {
+      $("#chemin").append("<a onclick='changeFolder(\""+folders.slice(0,index+1).join("/")+"\");'>"+folder+"</a>/");
+    }
+  });
+
 }
 
 // --------------------------------------- //

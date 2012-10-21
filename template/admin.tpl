@@ -17,9 +17,7 @@
 
 <div class="titrePage">
   <h2>
-    Dossier: <span id="fullDir">
-      <a onclick='changeFolder("");'>{$conf.photos_local_folder}</a><span id="chemin"></span>
-    </span>
+    Dossier: <span id="fullDir"><a onclick='changeFolder("");'>{$conf.photos_local_folder}</a><span id="chemin"></span></span>
   </h2>
 </div>
 

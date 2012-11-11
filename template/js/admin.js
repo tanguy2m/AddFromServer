@@ -213,7 +213,7 @@ $(function() {
       
     } else { // La photo n'est présente que sur le NAS
     
-      supprFromPath($("#chemin").html(),image);
+      supprFromPath($("#chemin").text(),image);
       
     }
     

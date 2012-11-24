@@ -33,7 +33,8 @@ function new_ws($arr) {
             'image_id' => array('default' => null),
             'date_creation' => array('default' => null)
         ),
-        '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.');
+        '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.'
+	);
 
 	// Ajout d'un web-service permettant de vérifier la présence d'une image dans Piwigo
     $service -> addMethod(
@@ -79,6 +80,50 @@ function addFromServer_add_tab($sheets, $id) {
     }	 
     
     return $sheets;
+}
+
+// Add a new delete button in picture.php
+add_event_handler('loc_end_picture', 'add_button');
+function add_button() {
+	global $template, $page, $picture;
+	
+	// Delete image if requested
+	if (isset($_GET['action']) && $_GET['action'] == 'delete') {
+		
+		include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
+		
+		//Re-use: admin/picture_modify.php@line 53
+		check_pwg_token(); // include/functions.inc.php@line 1543
+		delete_elements(array($page['image_id']), true);
+		invalidate_user_cache();
+		
+		// Prepare deletion confirmation
+		$_SESSION['page_infos'][] = 'Photo '.$picture['current']['TITLE'].' supprimée';
+		// Redirect to the relevant page
+		if (isset($page['next_item'])){
+			redirect($picture['next']['url']);
+		} else if (isset($page['previous_item'])){
+			redirect($picture['previous']['url']);
+		} else {
+			redirect($url_up);
+		}
+	}
+	
+	// Add button to template if user is admin
+	if (is_admin()) {
+		$template->assign('U_DELETE',
+			add_url_params(
+				$picture['current']['url'],
+				array(
+					'action'=>'delete',
+					'pwg_token'=>get_pwg_token()
+				)
+			)
+		);
+		$template->set_filename('delete_button', dirname(__FILE__).'/template/delete_button.tpl');
+		$button = $template->parse('delete_button', true);  
+		$template->concat('PLUGIN_PICTURE_ACTIONS', $button);
+	}
 }
 
 // --------------------------

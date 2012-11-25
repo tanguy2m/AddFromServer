@@ -89,17 +89,21 @@ function ws_images_addFromServer($params, &$service) {
     }
 
     // Add tags to the image if specified
-    if (isset($params['tags']) and!empty($params['tags'])) {
-        $tag_ids = array();
+	$tag_ids = array();
+	
+    if (!empty($params['tags'])) {
         $tag_names = explode(',', $params['tags']);
-        foreach($tag_names as $tag_name) {
-            $tag_id = tag_id_from_tag_name($tag_name);
-            array_push($tag_ids, $tag_id);
-        }
-
-        add_tags($tag_ids, array($image_id));
-    }
-
+    }	
+	if (!empty($conf['AddFromServer']['systematic_tag'])) {
+		$tag_names[] =  $conf['AddFromServer']['systematic_tag'];
+	}
+	
+	foreach($tag_names as $tag_name) {
+		$tag_id = tag_id_from_tag_name($tag_name);
+		array_push($tag_ids, $tag_id);
+	}
+	add_tags($tag_ids, array($image_id));
+	
     $url_params = array('image_id' => $image_id);
 
     if ($params['category'] > 0) {

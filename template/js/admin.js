@@ -354,7 +354,6 @@ $("input#launch").click(function() {
               image_path: $("#fullDir").text() +  image_name,
               category: category_id,
               level: $("select[name=level] option:selected").val(),
-              tags: systematic_tag //Variable déclarée dans admin.tpl
 			},
             
       beforeSend: jQuery.proxy(function() {

@@ -365,34 +365,41 @@ $("input#launch").click(function() {
       datatype: 'json',
       
       success: jQuery.proxy(function(data) {
-        var status = jQuery.parseJSON(data).stat;
-        
-        $(this).removeClass("sending"); // Dans tous les cas on supprime l'état "sending"
-        
-        if (status == "ok") // Si la requête n'a pas échoué
-          document.getElementById('browser').contentWindow.addPwgLink($(this),jQuery.parseJSON(data).result.image_id);
-        else {
-          $(this).addClass("error")
-          .attr('title','Erreur lors du transfert');
-          errorNotif(image_name, jQuery.parseJSON(data).message);
-        }
-        
-        var remaining = parseInt($("#nbRestant").html());
-        if(remaining > 1) {
-          $("#nbRestant").html(remaining-1);
-          $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
-        } else {
-            $("#status.start").hide();
-            
-            $("#status.end").empty()
-            .html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
-              nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
-            $("#status.end").show();
-            
-            updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
-        }
+	  
+		$(this).removeClass("sending"); // Dans tous les cas on supprime l'état "sending"
+		
+		try { // Le parseJSON peut échouer
+			var status = jQuery.parseJSON(data).stat;			
+			if (status == "ok") // Si la requête n'a pas échoué
+			  document.getElementById('browser').contentWindow.addPwgLink($(this),jQuery.parseJSON(data).result.image_id);
+			else {
+			  $(this).addClass("error")
+			  .attr('title','Erreur lors du transfert');
+			  errorNotif(image_name, jQuery.parseJSON(data).message);
+			}
+		}
+		catch (error) { 
+			$(this).addClass("error")
+				.attr('title','Erreur lors du transfert');
+			errorNotif(image_name, data);
+		}
+		
+		var remaining = parseInt($("#nbRestant").html());
+		if(remaining > 1) {
+		  $("#nbRestant").html(remaining-1);
+		  $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
+		} else {
+			$("#status.start").hide();
+			
+			$("#status.end").empty()
+			.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
+			  nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
+			$("#status.end").show();
+			
+			updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
+		}
+		
       },$(this))
-      
     });
   });
 });

@@ -1,7 +1,7 @@
 <?php
   /*
   Plugin Name: AddFromServer
-  Version: 2.4.d
+  Version: 2.5.a_beta
   Description: Add images already stored on server to Piwigo
   Author: TdM
   */
@@ -122,7 +122,7 @@ function add_button() {
 		);
 		$template->set_filename('delete_button', dirname(__FILE__).'/template/delete_button.tpl');
 		$button = $template->parse('delete_button', true);  
-		$template->concat('PLUGIN_PICTURE_ACTIONS', $button);
+		$template->add_picture_button($button, EVENT_HANDLER_PRIORITY_NEUTRAL);
 	}
 }
 

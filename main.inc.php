@@ -3,12 +3,10 @@
   Plugin Name: AddFromServer
   Version: 2.5.a_beta
   Description: Add images already stored on server to Piwigo
-  Author: TdM
+  Author: tanguy2m
   */
 
 define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/');
-global $conf;
-$conf['AddFromServer'] = unserialize($conf['AddFromServer']);
 
 // Déclaration des web-services
 add_event_handler('ws_add_methods', 'new_ws');

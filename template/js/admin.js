@@ -224,6 +224,8 @@ $(function() {
 //      Mise à jour du panel 'fichier'     //
 // --------------------------------------- //
 
+////OLD
+
 function razFile() {
     // Suppression de la miniature
     $("#miniature a").remove();
@@ -275,6 +277,31 @@ function displayInfoFichier(filename) {
         // *finally*, set the src attribute of the new image to our image
         .attr('src', buildThumbURL(480));
     }
+}
+
+////NEW
+
+function removeThumb(){
+	$("#thumb").remove();
+}
+
+function displayThumb(filename,e){
+	$("#thumb").remove(); //TODO: plutôt removeThumb non ?
+    $("#origine").append("<div id=\"thumb\"><img src=\""+ pluginPath +"template/browse.php?thumb="+ filename +"\" alt=\"Preview\" \/><\/div>");
+    positionThumb(e);
+    $("#thumb").fadeIn("medium");
+}
+
+function positionThumb(e){
+      xOffset = 30;
+      yOffset = 10;
+      $("#thumb").css("left",(e.clientX + xOffset) + "px");
+
+      diff = 0;
+      if(e.clientY + $("#thumb").height() > $(window).height())
+        diff = e.clientY + $("#thumb").height() - $(window).height();
+      
+      $("#thumb").css("top",(e.pageY - yOffset - diff) + "px");
 }
 
 // --------------------------------------- //

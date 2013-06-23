@@ -143,20 +143,6 @@ table img{
   text-align:center;
 }
 
-/* Thumbnail area */
-
-#thumb {
-  position:absolute;
-  border: 1px solid #CDD2D6;
-  background:#f8f9fa;
-  display:none;
-  padding:3px;
-}
-
-#thumb img {
-  display:block;
-}
-
 /* Login bar (at the bottom of the page) */
 #login_bar {
   margin: 0 auto;

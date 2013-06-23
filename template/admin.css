@@ -17,3 +17,17 @@ div#cheminFichier {margin-bottom: 8px;}
 #suppr {position:absolute; top:-4px; right:0; cursor:pointer;}
 
 fieldset#album, fieldset#progress {text-align: left;}
+
+/* Thumbnail area */
+
+#thumb {
+  position:absolute;
+  border: 1px solid #CDD2D6;
+  background:#f8f9fa;
+  display:none;
+  padding:3px;
+}
+
+#thumb img {
+  display:block;
+}

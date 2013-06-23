@@ -42,7 +42,8 @@
 	  Choix de l'album: 
 	  <select id="albumSelect" name="category">
 		{html_options options=$category_options selected=$category_options_selected}
-	  </select>   ... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
+	  </select>
+	  <br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
   </div>
   
   <div id="level">

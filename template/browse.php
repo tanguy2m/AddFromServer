@@ -41,7 +41,7 @@ $_CONFIG['lang'] = "fr";
 // Pdf files are also supported but require ImageMagick to be installed.
 // Default: $_CONFIG['thumbnails'] = true;
 //
-$_CONFIG['thumbnails'] = false;
+$_CONFIG['thumbnails'] = true;
 
 // Maximum sizes of the thumbnails.
 // Default: $_CONFIG['thumbnails_width'] = 200;
@@ -1687,6 +1687,7 @@ if(($this->getConfig('log_file') != null && strlen($this->getConfig('log_file'))
   || ($this->getConfig('thumbnails') != null && $this->getConfig('thumbnails') == true && $this->mobile == false))
 { 
 ?>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
@@ -1713,34 +1714,19 @@ $(document).ready(function() {
   }
   if(EncodeExplorer::getConfig("thumbnails") == true && $this->mobile == false)
   {
-?>
-    function positionThumbnail(e) {
-      xOffset = 30;
-      yOffset = 10;
-      $("#thumb").css("left",(e.clientX + xOffset) + "px");
-
-      diff = 0;
-      if(e.clientY + $("#thumb").height() > $(window).height())
-        diff = e.clientY + $("#thumb").height() - $(window).height();
-      
-      $("#thumb").css("top",(e.pageY - yOffset - diff) + "px");
-    }
-    
-    $("a.thumb").hover(function(e){
-      $("#thumb").remove();
-      $("body").append("<div id=\"thumb\"><img src=\"?thumb="+ $(this).attr("href") +"\" alt=\"Preview\" \/><\/div>");
-      positionThumbnail(e);
-      $("#thumb").fadeIn("medium");
+?>   
+    $("a.thumb").hover(function(e){ //Hover-in
+	  parent.displayThumb($(this).attr("href"),e);
     },
-    function(){
-      $("#thumb").remove();
+    function(){ //Hover-out
+      parent.removeThumb();
     });
 
     $("a.thumb").mousemove(function(e){
-      positionThumbnail(e);
-      });
+      parent.positionThumb(e);
+    });
 
-    $("a.thumb").click(function(e){$("#thumb").remove(); return true;});
+    $("a.thumb").click(function(e){parent.removeThumb(); return true;});
 <?php 
   }
 ?>
@@ -1751,7 +1737,6 @@ $(document).ready(function() {
 }
 ?> 
 <!-- Script perso permettant de récupérer le chemin vers le dossier -->
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
 <script type="text/javascript" src="js/jquery.ajaxq.js"></script>
 <script type="text/javascript" src="js/browse.js"></script>
   

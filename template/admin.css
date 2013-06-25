@@ -1,6 +1,6 @@
 fieldset#album p {float:right;}
 
-iframe {float:left; border: 0px; width: 460px; max-height: 500px;}
+iframe {border: 0px; width: 500px; max-height: 500px;}
 
 #waitBrowser {position:absolute; top:0; left:0; z-index:1; width:100%; height:100%; opacity:0.8;}
 

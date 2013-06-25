@@ -130,7 +130,9 @@ $_TRANSLATIONS["en"] = array(
   "location" => "Location",
   "root" => "Root",
   "mobile_version" => "Mobile view",
-  "standard_version" => "Standard view"
+  "standard_version" => "Standard view",
+  "site" => "Website",
+  "suppr" => "Suppr"
 );
 
 // French
@@ -142,7 +144,9 @@ $_TRANSLATIONS["fr"] = array(
   "location" => "Localisation",
   "root" => "Racine",
   "mobile_version" => "Version mobile",
-  "standard_version" => "Version standard"
+  "standard_version" => "Version standard",
+  "site" => "Site",
+  "suppr" => "Suppr"
 );
 
 include_once('images.php');
@@ -293,9 +297,16 @@ class ImageServer
     {
       header('ETag: "'.$etag.'"');
       header('Last-Modified: '.$mtime);
-      header('Content-Type: image/png');
-      $image = ImageServer::createThumbnail($file);
-      imagepng($image);
+      if(true){ //TODO: détecter si ImageMagick est installé
+        $size = max(EncodeExplorer::getConfig('thumbnails_width'), EncodeExplorer::getConfig('thumbnails_height'));
+        $cmd = 'convert -define jpeg:size='.$size.'x'.$size.' "'.dirname(__file__).'/'.$file.'" -auto-orient -thumbnail '.$size.'x'.$size.' -unsharp 0x.5 JPG:-';
+        header("Content-Type: image/jpeg" ); 
+        passthru($cmd, $retval);  
+      } else {
+        header('Content-Type: image/png');
+        $image = ImageServer::createThumbnail($file);
+        imagepng($image);
+      }
     }
   }
   
@@ -899,14 +910,15 @@ if($this->mobile == false)
   <td class="name"><?php print $this->makeArrow("name");?></td>
   <td class="size"><?php print $this->makeArrow("size"); ?></td>
   <td class="changed"><?php print $this->makeArrow("mod"); ?></td>
-  <td class="site">Site</td>
+  <td class="site"><?php print $this->getString("site"); ?></td>
+  <td class="suppr"><?php print $this->getString("suppr"); ?></td>
 </tr>
 <?php 
 }
 ?>
 <tr class="row two">
   <td class="icon"><img alt="dir" src="?img=directory" /></td>
-  <td colspan="<?php print (($this->mobile == true?3:4)); ?>" class="long">
+  <td colspan="<?php print (($this->mobile == true?3:5)); ?>" class="long">
     <a class="item" href="<?php print $this->makeLink(false, false, null, null, null, $this->location->getDir(false, true, false, 1)); ?>">..</a>
   </td>
 </tr>
@@ -926,7 +938,7 @@ if($this->dirs)
     $row_style = ($row ? "one" : "two");
     print "<tr class=\"row ".$row_style."\">\n";
     print "<td class=\"icon\"><img alt=\"dir\" src=\"?img=directory\" /></td>\n";
-    print "<td class=\"name\" colspan=\"".($this->mobile == true?3:4)."\">\n";
+    print "<td class=\"name\" colspan=\"".($this->mobile == true?3:5)."\">\n";
     print "<a href=\"".$this->makeLink(false, false, null, null, null, $this->location->getDir(false, true, false, 0).$dir->getNameEncoded())."\" class=\"item dir\">";
     print $dir->getNameHtml();
     print "</a>\n";
@@ -968,6 +980,7 @@ if($this->files)
       print "<td class=\"changed\">".$this->formatModTime($file->getModTime())."</td>\n";
     }
 	print "<td".($file->isImage()?" class=\"site pending\"":"")."></td>\n";
+	print "<td class=\"icon suppr\"><a href=\"\"><img title=\"Supprimer la photo\" src=\"".$this->makeIcon("del")."\" /></a></td>\n";
     print "</tr>\n";
     $row =! $row;
   }

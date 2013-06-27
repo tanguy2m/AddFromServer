@@ -247,9 +247,13 @@ function updateMissingNb() {
     } else if (number == 1) {
       $("span.missing").html(" - " + number + " photo absente du site");
       $("fieldset#album").show();
-    } else {
-      $("span.missing").html(" - Toutes les photos sont déjà sur le site");
-      $("fieldset#album").hide();
+    } else { // No missing or error
+	  if ($("#browser").contents().find('td.site.present').length > 0) {
+        $("span.missing").html(" - Toutes les photos sont déjà sur le site");
+        $("fieldset#album").hide();
+	  } else {
+	    razMissingNb();
+	  }
     }
 }
 

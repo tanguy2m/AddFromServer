@@ -235,7 +235,7 @@ function ws_images_deleteFromServer($params, &$service) {
 
 	// Récupération de la liste des chemins d'image à traiter
 	$file_names = preg_split(
-		'/[,;\|]/',
+		'/[;\|]/',
 		stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
 		-1,
 		PREG_SPLIT_NO_EMPTY

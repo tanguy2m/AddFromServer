@@ -1,10 +1,8 @@
 fieldset#album p {float:right;}
 
-iframe {border: 0px; width: 500px; max-height: 500px;}
+iframe {border: 0px; width: 540px; max-height: 480px;}
 
 #waitBrowser {position:absolute; top:0; left:0; z-index:1; width:100%; height:100%; opacity:0.8;}
-
-div#cheminFichier {margin-bottom: 8px;}
 
 .loading {background: url('../../../../themes/default/images/ajax-loader-small.gif') no-repeat right top;}
 
@@ -12,6 +10,11 @@ div#cheminFichier {margin-bottom: 8px;}
 
 #level {margin-top: 10px;}
 
+fieldset {
+  width: 650px;
+  margin-right: auto;
+  margin-left: auto;
+}
 fieldset#album, fieldset#progress {text-align: left;}
 
 /* Thumbnail area */

@@ -115,6 +115,10 @@ $_CONFIG['basedir'] = "";
 //
 $_CONFIG['large_files'] = false;
 
+// ImageMagick available on server
+// Default: $_CONFIG['image_magick'] = false;
+$_CONFIG['image_magick'] = true;
+
 /***************************************************************************/
 /*   TRANSLATIONS.                                                         */
 /***************************************************************************/
@@ -297,7 +301,7 @@ class ImageServer
     {
       header('ETag: "'.$etag.'"');
       header('Last-Modified: '.$mtime);
-      if(true){ //TODO: détecter si ImageMagick est installé
+      if(EncodeExplorer::getConfig("image_magick") == true){
         $size = max(EncodeExplorer::getConfig('thumbnails_width'), EncodeExplorer::getConfig('thumbnails_height'));
         $cmd = 'convert -define jpeg:size='.$size.'x'.$size.' "'.dirname(__file__).'/'.$file.'" -auto-orient -thumbnail '.$size.'x'.$size.' -unsharp 0x.5 JPG:-';
         header("Content-Type: image/jpeg" ); 
@@ -980,7 +984,7 @@ if($this->files)
       print "<td class=\"changed\">".$this->formatModTime($file->getModTime())."</td>\n";
     }
 	print "<td".($file->isImage()?" class=\"site pending\"":"")."></td>\n";
-	print "<td class=\"icon suppr\"><a href=\"\"><img title=\"Supprimer la photo\" src=\"".$this->makeIcon("del")."\" /></a></td>\n";
+	print "<td".($file->isImage()?" class=\"icon suppr\"><img title=\"Supprimer la photo\" src=\"".$this->makeIcon("del")."\" /":"")."></td>\n";
     print "</tr>\n";
     $row =! $row;
   }

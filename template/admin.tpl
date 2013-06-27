@@ -63,12 +63,6 @@
     </span>
     <span class="missing"></span>
   </legend>
-
-  <div class="reference">
-    <div id="cheminFichier">Sélectionner une photo pour afficher un aperçu</div>
-    <img id="suppr" src="{$ROOT_URL}{$themeconf.admin_icon_dir}/category_delete.png" title="Supprimer la photo" style="display:none">
-  </div>
-  <div id="miniature"></div>
   
   <iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
   <div id="waitBrowser" class="loadingBig"></div>

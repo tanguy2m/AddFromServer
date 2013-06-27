@@ -9,7 +9,6 @@ function showBrowser(size) {
 }
 
 function hideBrowser() { // Le dossier change dans browse.php
-    razFile();
     $("#waitBrowser").show();
 }
 
@@ -115,14 +114,19 @@ jQuery(document).ready(function() {
 // ---------------------------//
 
 // Suppression d'une photo à partir de son ID
-function supprFromID(image,id) {
+function supprFromID(params) {
+    
+  params.image = params.image || '';
+  //params.id mandatory
+  params.success = params.success || function(){};
+  
   $.ajax({
     url: 'ws.php?format=json',
     data: { method: 'pwg.session.getStatus' },
     success: function(data) {
       try { // Le parseJSON peut échouer
         if (jQuery.parseJSON(data).stat == "fail") {
-          errorNotif('Suppression ' + image, jQuery.parseJSON(data).message);
+          errorNotif('Suppression ' + params.image, jQuery.parseJSON(data).message);
         } else {
           var token = jQuery.parseJSON(data).result.pwg_token;
           $.ajax({
@@ -130,156 +134,74 @@ function supprFromID(image,id) {
             type: "POST",
             data: {
               method: 'pwg.images.delete',
-              image_id: id,
+              image_id: params.id,
               pwg_token: token
             },
             success: function(answer) {
               try { // Le parseJSON peut échouer
                 if (jQuery.parseJSON(answer).stat == "fail") {
-                  errorNotif('Suppression ' + image, jQuery.parseJSON(answer).message);
+                  errorNotif('Suppression ' + params.image, jQuery.parseJSON(answer).message);
                 } else {
-                  infoNotif(image, 'Fichier supprimé');
-                  // Rafraîchissement de l'iframe
-                  reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
-                  // Remise à zéro de la zone propre à l'image
-                  razFile();
+                  infoNotif(params.image, 'Fichier supprimé');
+                  params.success();
+                  updateMissingNb();
                 }
               }
               catch (error) {
-                errorNotif('Suppression ' + image, answer);
+                errorNotif('Suppression ' + params.image, answer);
               }
             }
           });
         }
       }
       catch (error) {
-        errorNotif('Suppression ' + image, data);
+        errorNotif('Suppression ' + params.image, data);
       }
     }
   });
 }
 
 // Suppression d'une image à partir de son chemin
-function supprFromPath(path,image) {
+function supprFromPath(params) {
+    
+  params.path = params.path || '';
+  //params.image mandatory
+  params.success = params.success || function(){};
+  
   $.ajax({
     url: 'ws.php?format=json',
     data: {
       method: 'pwg.images.deleteFromServer',
-      prefix_path: path,
-      images_paths: image
+      prefix_path: params.path,
+      images_paths: params.image
     },
     success: function(data) {
       try { // Le parseJSON peut échouer
         if (jQuery.parseJSON(data).stat == "fail") {
           var message = jQuery.parseJSON(data).message;
           if ('errors' in message) { // Le message contient un attribut errors
-            for (err in message.errors) {
+            for (var err in message.errors) {
               errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
             }
           } else {
-            errorNotif('Suppression ' + image, message);
+            errorNotif('Suppression ' + params.image, message);
           }
         } else {
-          infoNotif(image, 'Fichier supprimé');
-          // Rafraîchissement de l'iframe
-          reloadDossier(image); //C'est la fonction 'refresh' de l'Iframe
-          // Remise à zéro de la zone propre à l'image
-          razFile();
+          infoNotif(params.image, 'Fichier supprimé');
+          params.success();
+          updateMissingNb();
         }
       }
       catch (error) {
-        errorNotif('Suppression ' + image, data);
+        errorNotif('Suppression ' + params.image, data);
       }
     }
   });
 }
-
-$(function() {
-  $('#suppr').click(function() {
-
-    var image = $("#cheminFichier").html();
-    var $td_site = $(document.getElementById('browser').contentWindow.document.getElementById(image)).find('td:nth-child(5)');
-    
-    if ($td_site.is('.pending, .sending, .error')) { // La photo est dans une phase d'ajout au site
-    
-      alert("Cette photo est en cours d'envoi. Impossible de la supprimer");
-      
-    } else if ($td_site.is('.present')) { // La photo est déjà sur le site
-    
-      var answer=confirm("Cette photo est déjà sur Piwigo, êtes-vous sûr de vouloir la supprimer du site?");
-      if (answer == true) {
-        supprFromID(image,$td_site.find('a:first').attr('id'));
-      }
-      
-    } else { // La photo n'est présente que sur le NAS
-    
-      supprFromPath($("#chemin").text(),image);
-      
-    }
-    
-  });
-});
 
 // --------------------------------------- //
 //      Mise à jour du panel 'fichier'     //
 // --------------------------------------- //
-
-////OLD
-
-function razFile() {
-    // Suppression de la miniature
-    $("#miniature a").remove();
-    // Suppression du lien vers l'image
-    $('#cheminFichier').html('Sélectionner une photo pour afficher un aperçu');
-    $("#suppr").hide();
-}
-
-function displayNoThumb() {
-    $('#cheminFichier').html("Ce n'est pas une photo");
-    $("#miniature a").remove(); // Suppression de l'image existante
-    $("#suppr").hide();
-}
-
-var thumb = new Image();
-
-function buildThumbURL(size) {
-   return pluginPath + 'include/thumb.php?max=' + size + '&image=' + encodeURIComponent($("#fullDir").text() + $("#cheminFichier").text()); 
-}
-
-function displayInfoFichier(filename) {
-    // Affichage du chemin vers le fichier
-    $('#cheminFichier').html(filename);
-
-    if ($("#cheminFichier").hasClass("loading")) {
-        $(thumb).attr('src', buildThumbURL(480));
-    }
-    else {
-        $("#miniature a").remove(); // Suppression de l'image existante
-        $("#suppr").hide();
-        $("#cheminFichier").addClass('loading');
-
-        $(thumb).load(function() { // Code exécuté à l'ouverture de l'image
-            $(this).hide(); // On cache l'image par défaut      
-            $("#cheminFichier").removeClass('loading');
-            $('#miniature')
-            // Ajout du lien vers l'image 'HD'
-            .append('<a href=\"' + buildThumbURL(800) + '\" target="_blank"></a>');
-            $('#miniature a').append(this); // Insertion de l'image dans le div #miniature
-            $(this).fadeIn(); // Petit effet à l'ouverture de l'image
-            $("#suppr").show();
-        })
-
-        .error(function() {
-            errorNotif('Calcul des miniatures', 'Chargement de l\'image impossible');
-            $("#cheminFichier").removeClass('loading');
-        })
-
-        // *finally*, set the src attribute of the new image to our image
-        .attr('src', buildThumbURL(480));
-    }
-}
-
-////NEW
 
 function removeThumb(){
 	$("#thumb").remove();
@@ -295,11 +217,11 @@ function displayThumb(filename,e){
 function positionThumb(e){
       xOffset = 30;
       yOffset = 10;
-      $("#thumb").css("left",(e.clientX + xOffset) + "px");
+      $("#thumb").css("left",(e.pageX + xOffset) + "px");
 
       diff = 0;
-      if(e.clientY + $("#thumb").height() > $(window).height())
-        diff = e.clientY + $("#thumb").height() - $(window).height();
+      if(e.pageY + $("#thumb").height() > $(window).height())
+        diff = e.pageY + $("#thumb").height() - $(window).height();
       
       $("#thumb").css("top",(e.pageY - yOffset - diff) + "px");
 }

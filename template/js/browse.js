@@ -1,7 +1,3 @@
-function getImageName(cell) {
-    return cell.closest('a.item.file').html();
-}
-
 function addPwgLink(cell,photo_ID) {
     cell
     .addClass('present')
@@ -35,17 +31,38 @@ $(function() {
     // ------------------------------
     var fullLink = $('tr.row.one.header td.name a').attr('href'); // Récupération du lien à partir du header 'Nom de fichier'
     parent.updateChemin(decodeURIComponent(fullLink.substring(fullLink.indexOf("&dir=photos/") + 12))); // On ne garde que la fin de la chaîne après "&dir=photos/"
+    
     // --------------------------------------
-    // Récupération du click sur les fichiers
+    // Récupération du click sur bouton suppr
     // --------------------------------------
-    $('a.item.file').click(function() {
-
-        if ($(this).closest('tr').find("img:first").attr('alt') == "jpg") parent.displayInfoFichier($(this).html()); //Suppression de 'photos/'
-        else parent.displayNoThumb();
-
-        return false; // Afin d'éviter que l'hyperlien soit réellement éxécuté
+    $('td.suppr img').click(function() {
+        
+        var path = decodeURIComponent($(this).closest('tr').find('td.name a').attr('href').substring(7)); //Suppression de 'photos/'
+        var $td_site = $(this).closest('tr').find('td.site');
+        
+        if ($td_site.is('.pending, .sending, .error')) { // La photo est dans une phase d'ajout au site
+        
+          alert("Cette photo est en cours d'envoi. Impossible de la supprimer");
+          
+        } else if ($td_site.is('.present')) { // La photo est déjà sur le site
+        
+          var answer=confirm("Cette photo est déjà sur Piwigo, êtes-vous sûr de vouloir la supprimer du site?");
+          if (answer === true) {
+            parent.supprFromID({
+                image: path,
+                id: $td_site.find('a:first').attr('id'),
+                success: jQuery.proxy(function() { $(this).closest('tr').remove(); }, $(this))
+            });
+          }
+          
+        } else { // La photo n'est présente que sur le NAS
+          parent.supprFromPath({
+              image: path,
+              success: jQuery.proxy(function() { $(this).closest('tr').remove(); }, $(this))
+          });
+        }
     });
-
+    
     // -----------------------------------------
     // Récupération de l'état dans Piwigo ou pas
     // -----------------------------------------
@@ -109,12 +126,4 @@ $(function() {
 
 function refresh() {
     window.location.href = window.location.href;
-}
-
-// Association de la fonction 'reloadDossier' de la page select
-parent.reloadDossier = removeRow;
-
-function removeRow(id) {
-    $('tr[id="' + id + '"]').remove();
-    parent.updateMissingNb();
 }

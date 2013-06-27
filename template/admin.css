@@ -12,10 +12,6 @@ div#cheminFichier {margin-bottom: 8px;}
 
 #level {margin-top: 10px;}
 
-.reference {position:relative;}
-
-#suppr {position:absolute; top:-4px; right:0; cursor:pointer;}
-
 fieldset#album, fieldset#progress {text-align: left;}
 
 /* Thumbnail area */

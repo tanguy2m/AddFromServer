@@ -124,9 +124,8 @@ td.site.missing { background-image:url(../../../admin/themes/default/icon/remove
 td.site.sending { background-image:url(../../../admin/themes/clear/icon/synchronize.png); }
 td.site.error, td.site.double { background-image:url(../../../admin/themes/clear/icon/warning.png); }
 
-td.suppr{
-  text-align: center;
-}
+td.suppr { text-align: center; }
+td.suppr img { cursor: pointer; }
 
 table.table tr.header img {
   vertical-align:bottom;

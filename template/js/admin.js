@@ -3,6 +3,7 @@
 ///////////////////////////
 
 function showBrowser(size) {
+    stopScan();
     $("#browser").height(window.frames.browser.document.body.offsetHeight + 30); // Dimensionement de l'Iframe en fonction du contenu
     $("#waitBrowser").css('background-color', $("#content").css('background-color')); // Copie de la couleur de fond du thème
     $("#waitBrowser").hide();
@@ -263,6 +264,7 @@ function razMissingNb() {
 }
 
 function changeFolder(folder) {
+  hideBrowser();
   $("#browser").attr("src",pluginPath+"template/browse.php?dir=photos/"+folder);
 }
 

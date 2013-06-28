@@ -15,7 +15,12 @@
             $errors[] = "La variable de configuration 'AddFromServer' n'est pas correctement déclarée dans le fichier de configuration";
             return;
         }
-        
+		
+        if(substr($conf['AddFromServer']['photos_local_folder'], -1) !== '/'){
+            $errors[] = "La variable de configuration ['AddFromServer']['photos_local_folder'] doit se terminer par un '/'";
+            return;
+        }
+		
         // Symlink creation to the photos directory
     	symlink($conf['AddFromServer']['photos_local_folder'],realpath(dirname(__FILE__)).'/template/photos');
 	}

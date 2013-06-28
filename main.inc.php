@@ -128,19 +128,18 @@ function add_button() {
 //   Catch images deletion
 // --------------------------
 
-global $removeOriginals, $paths_to_be_deleted;
-$removeOriginals = true;
-
 // Tableau des images à déplacer dans la corbeille
 // Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
+global $paths_to_be_deleted;
 $paths_to_be_deleted = array();
 
 add_event_handler('begin_delete_elements', 'get_paths');
 function get_paths($ids) {
 
-	global $removeOriginals, $paths_to_be_deleted, $conf;
+	global $paths_to_be_deleted, $conf;
 	$photosPath = $conf['AddFromServer']['photos_local_folder'];
 	
+	$removeOriginals = empty($conf['AddFromServer']['removeOriginals']) ? false : $conf['AddFromServer']['removeOriginals'];
 	if( $removeOriginals ) {
 		foreach($ids as $image_id) {	
 				// Récupération du chemin vers la photo source de Piwigo

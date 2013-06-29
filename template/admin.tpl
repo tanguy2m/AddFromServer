@@ -64,6 +64,7 @@
     <span class="missing"></span>
   </legend>
   
+  <div id="thumb" style="display:none"><div id="thumbName"></div><img src="" alt="Preview"/></div>
   <iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
   <div id="waitBrowser" class="loadingBig"></div>
 

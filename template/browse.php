@@ -67,7 +67,7 @@ $_CONFIG['mobile_default'] = false;
 // Will the files be opened in a new window? true/false 
 // Default: $_CONFIG['open_in_new_window'] = false;
 //
-$_CONFIG['open_in_new_window'] = false;
+$_CONFIG['open_in_new_window'] = true;
 
 // The time format for the "last changed" column.
 // Default: $_CONFIG['time_format'] = "d.m.y H:i:s";

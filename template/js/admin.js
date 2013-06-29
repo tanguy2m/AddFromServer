@@ -205,26 +205,31 @@ function supprFromPath(params) {
 // --------------------------------------- //
 
 function removeThumb(){
-	$("#thumb").remove();
+	$("#thumb").hide();
 }
 
-function displayThumb(filename,e){
-	$("#thumb").remove(); //TODO: plutôt removeThumb non ?
-    $("#origine").append("<div id=\"thumb\"><img src=\""+ pluginPath +"template/browse.php?thumb="+ filename +"\" alt=\"Preview\" \/><\/div>");
-    positionThumb(e);
-    $("#thumb").fadeIn("medium");
+function displayThumb(path,e){
+	$("#thumb").hide();
+	$("#thumbName").html(decodeURIComponent(path.substring(path.lastIndexOf('/') + 1)));
+	$("#thumb").show();
+	$("#thumb img").load(function() { // Code exécuté à l'ouverture de l'image
+		positionThumb(e);
+		$(this).fadeIn("medium");
+    })
+	.attr('src',pluginPath +"template/browse.php?thumb="+ path);
 }
 
 function positionThumb(e){
-      xOffset = 30;
-      yOffset = 10;
-      $("#thumb").css("left",(e.pageX + xOffset) + "px");
-
-      diff = 0;
-      if(e.pageY + $("#thumb").height() > $(window).height())
-        diff = e.pageY + $("#thumb").height() - $(window).height();
-      
-      $("#thumb").css("top",(e.pageY - yOffset - diff) + "px");
+	xOffset = 35;
+	yOffset = 35;
+	$("#thumb").css("left",(e.clientX + xOffset) + "px");
+  
+	$("#thumb").css("bottom","auto").css('top', 'auto');
+	if(e.clientY + yOffset + $("#thumb").height() > $("#origine").height()) {
+		$("#thumb").css("bottom","0");
+	} else {
+		$("#thumb").css("top", (e.clientY + yOffset) + "px");
+	}
 }
 
 // --------------------------------------- //

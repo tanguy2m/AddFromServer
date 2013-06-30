@@ -4,6 +4,7 @@
   Version: 2.5.a
   Description: Add images already stored on server to Piwigo
   Author: tanguy2m
+  Plugin URI: https://github.com/tanguy2m/AddFromServer/
   */
 
 define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/');

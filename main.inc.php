@@ -1,7 +1,7 @@
 <?php
   /*
   Plugin Name: AddFromServer
-  Version: 2.5.a_beta
+  Version: 2.5.a
   Description: Add images already stored on server to Piwigo
   Author: tanguy2m
   */
@@ -96,7 +96,7 @@ function add_button() {
 		invalidate_user_cache();
 		
 		// Prepare deletion confirmation
-		$_SESSION['page_infos'][] = 'Photo '.$picture['current']['TITLE'].' supprimée';
+		$_SESSION['page_infos'][] = "Photo '".$picture['current']['TITLE']."' supprimée";
 		// Redirect to the relevant page
 		if (isset($page['next_item'])){
 			redirect($picture['next']['url']);

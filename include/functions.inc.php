@@ -24,10 +24,13 @@ function move_to_bin($files) {
 		// Création du dossier de destination si nécessaire
 		if (is_dir($dir) or @mkdir($dir, 0777, true)) {		
 			// Déplacement du fichier
-			$commande = "sudo -u generic mv \"".$photosPath.$file_path."\" \"".$dir."\" 2>&1";
-			exec($commande,$out);
-			if(!empty($out)) {
-				$errors_list[] = array("file" => $file_path, "error" => implode(PHP_EOL, $out));
+			if ($conf['AddFromServer']['delete_type'] == 'sudoMove') {
+				$commande = "sudo -u ".$conf['AddFromServer']['sudo_user']." mv \"".$photosPath.$file_path."\" \"".$dir."\" 2>&1";
+				exec($commande,$out);
+				if(!empty($out))
+					$errors_list[] = array("file" => $file_path, "error" => implode(PHP_EOL, $out));
+			} else if ($conf['AddFromServer']['delete_type'] == 'simpleMove'){
+				rename($photosPath.$file_path,$photosBinPath.$file_path);
 			}
 		} else {
 			$errors_list[] = array("file" => $file_path, "error" => "Directory creation failed: ".$dir);

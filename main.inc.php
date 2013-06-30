@@ -128,43 +128,42 @@ function add_button() {
 //   Catch images deletion
 // --------------------------
 
-// Tableau des images à déplacer dans la corbeille
-// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
-global $paths_to_be_deleted;
-$paths_to_be_deleted = array();
+global $conf;
+if( !empty($conf['AddFromServer']['removeOriginals']) && $conf['AddFromServer']['removeOriginals'] ){
+	add_event_handler('begin_delete_elements', 'get_paths');
+	add_event_handler('delete_elements', 'delete_originals');
+	
+	global $paths_to_be_deleted; // Tableau des images à déplacer dans la corbeille
+	$paths_to_be_deleted = array(); // Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
+}
 
-add_event_handler('begin_delete_elements', 'get_paths');
 function get_paths($ids) {
-
 	global $paths_to_be_deleted, $conf;
 	$photosPath = $conf['AddFromServer']['photos_local_folder'];
 	
-	$removeOriginals = empty($conf['AddFromServer']['removeOriginals']) ? false : $conf['AddFromServer']['removeOriginals'];
-	if( $removeOriginals ) {
-		foreach($ids as $image_id) {	
-				// Récupération du chemin vers la photo source de Piwigo
-				$query = '
-					SELECT
-					path
-					FROM '.IMAGES_TABLE.'
-					WHERE id = '.$image_id.'
-					;';
-				list($file_path) = pwg_db_fetch_row(pwg_query($query));
-			
-				// Récupération du chemin original pour suppression
-				if (is_link($file_path)) {
-					array_push($paths_to_be_deleted, str_replace($photosPath, "", readlink($file_path)));
-				}
+	foreach($ids as $image_id) {	
+		// Récupération du chemin vers la photo source de Piwigo
+		$query = '
+			SELECT
+			path
+			FROM '.IMAGES_TABLE.'
+			WHERE id = '.$image_id.'
+			;';
+		list($file_path) = pwg_db_fetch_row(pwg_query($query));
+	
+		// Récupération du chemin original pour suppression
+		if (is_link($file_path)) {
+			array_push($paths_to_be_deleted, str_replace($photosPath, "", readlink($file_path)));
 		}
 	}
 }
 
-add_event_handler('delete_elements', 'delete_originals');
 function delete_originals($ids) {
 
 	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
 	global $paths_to_be_deleted;
 	
+	log_line("$paths_to_be_deleted: ".implode(";",$paths_to_be_deleted));
 	$errors_list = move_to_bin($paths_to_be_deleted);
 	foreach ($errors_list as $err) {
 		log_line($err["file"]." ### ".$err["error"]);

@@ -6,11 +6,53 @@ function addPwgLink(cell,photo_ID) {
     .children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
 }
 
-function addDoubleLink(cell,pwg_path) {
-    cell
-    .addClass('double')
-    .removeAttr("title")
-    .attr("title","Image en double");
+function processImages(args){
+    
+    args.beforeSend = args.beforeSend || function(){};
+    args.complete = args.complete || function(){};
+    args.noimage = args.noimage || function(){};
+    
+    var maxNumber = 20; // Nombre max de fichiers par requête    
+
+    var i= 0;
+    var $slice = $(args.selector).slice(0,maxNumber);
+    while ($slice.length > 0) { // Si il y a au moins une photo, requête
+    
+        var filesNames = "";
+        $slice.each(function() {
+            filesNames += $(this).closest('tr').attr('id') + ';';
+        });       
+
+        $.ajaxq("files", {
+            url: './../../../ws.php?format=json', // Remontée jusqu'à la racine de Piwigo
+            data: {
+                method: args.service,
+                prefix_path: $('tr.row.one.header').attr('id').substring(7), //Suppression de "photos/"
+                images_paths: filesNames
+            },
+            beforeSend: $.proxy( args.beforeSend, $slice),
+            success: function(data) {
+                try { // Le parseJSON peut échouer
+                    if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
+                        args.success(jQuery.parseJSON(data).result);
+                    }
+                    else {
+                        parent.errorNotif("Erreur "+jQuery.parseJSON(data).err, jQuery.parseJSON(data).message);
+                    }
+                }
+                catch (error) {
+                    parent.errorNotif("Erreur",error);
+                }
+            },
+            complete: args.complete
+        });
+        
+        $slice = $(args.selector).slice((i+1)*maxNumber,(i+2)*maxNumber);
+        i++;
+    }
+    
+    if(i===0) // Cas des dossiers
+        args.noimage();
 }
 
 $(function() {
@@ -29,8 +71,7 @@ $(function() {
     // ------------------------------
     // Récupération du nom du dossier
     // ------------------------------
-    var fullLink = $('tr.row.one.header td.name a').attr('href'); // Récupération du lien à partir du header 'Nom de fichier'
-    parent.updateChemin(decodeURIComponent(fullLink.substring(fullLink.indexOf("&dir=photos/") + 12))); // On ne garde que la fin de la chaîne après "&dir=photos/"
+    parent.updateChemin($('tr.row.one.header').attr('id').substring(7)); // On ne garde que la fin de la chaîne après "&dir=photos/"
     
     // --------------------------------------
     // Récupération du click sur bouton suppr
@@ -65,61 +106,39 @@ $(function() {
     
     // -----------------------------------------
     // Récupération de l'état dans Piwigo ou pas
-    // -----------------------------------------
-       
+    // -----------------------------------------       
     // Fait par le client car temps masqué
-    var files_list = [];
-    var maxNumber = 20; // Nombre max de fichiers par requête
-    $("td.site.pending").each(function(index) {
-        if (index % maxNumber === 0) files_list[index / maxNumber] = "";
-        files_list[(index - index % maxNumber) / maxNumber] +=$(this).closest('tr').attr('id') + ';';
-    });
-
-    if (files_list.length > 0) { // Si il y a au moins une photo, requête
-        $.each(files_list, function(index, filesNames) {
-            $.ajaxq("checkExist", {
-                url: './../../../ws.php?format=json',
-                // Remontée jusqu'à la racine de Piwigo
-                data: {
-                    method: 'pwg.images.existFromPath',
-                    prefix_path: decodeURIComponent($('tr.row.one.header td.name a').attr('href').substring(fullLink.indexOf("&dir=photos/") + 12)),
-                    images_paths: filesNames
-                },
-                datatype: 'json',
-                beforeSend: function() {
-                  parent.startScan();
-                },
-                success: function(data) {
-                    if (jQuery.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
-                        $.each(jQuery.parseJSON(data).result, function(file_name, resultat) {
-                            if (resultat.id > 0) {
-                                //Pas de JjQuery pour les ID (caractères spéciaux comme '.')
-                                $(document.getElementById(file_name)).find('td.site').removeClass("pending");
-                                if (resultat.double == "yes") {
-                                  addDoubleLink($(document.getElementById(file_name)).find('td.site'),resultat.pwg_path);
-                                } else {
-                                  addPwgLink($(document.getElementById(file_name)).find('td.site'),resultat.id);
-                                }
-                            }
-                            else {
-                                $(document.getElementById(file_name)).find('td.site')
-                                .removeClass("pending")
-                                .addClass("missing").attr('title','Manque dans Piwigo');
-                            }
-                        });
-                        parent.updateMissingNb();
+    processImages({
+        selector: "td.site.pending",
+        service: "pwg.images.existFromPath",
+        beforeSend: parent.startScan,
+        
+        success: function(answer){
+            $.each(answer, function(file_name, resultat) {
+                var $td_site = $(document.getElementById(file_name)).find('td.site'); //Pas de jQuery pour les ID (caractères spéciaux comme '.')
+                if (resultat.id > 0) {
+                    $td_site.removeClass("pending");
+                    if (resultat.double == "yes") {
+                        $td_site
+                        .addClass('double')
+                        .removeAttr("title")
+                        .attr("title","Image en double");
+                    } else {
+						addPwgLink($td_site,resultat.id);
                     }
-                    else {
-                        parent.errorNotif("Erreur "+jQuery.parseJSON(data).err, jQuery.parseJSON(data).message);
-                    }
-                    parent.stopScan();
+                }
+                else {
+                    $td_site
+                    .removeClass("pending")
+                    .addClass("missing").attr('title','Manque dans Piwigo');
                 }
             });
-        });
-    }
-    else {
-        parent.razMissingNb();
-    }
+            parent.updateMissingNb();
+        },
+        
+        complete: parent.stopScan,      
+        noimage: parent.razMissingNb
+    });
 });
 
 // Refresh de la page, non utilisé pour l'instant

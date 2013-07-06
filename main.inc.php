@@ -1,7 +1,7 @@
 <?php
   /*
   Plugin Name: AddFromServer
-  Version: 2.5.a
+  Version: 2.5.b_beta
   Description: Add images already stored on server to Piwigo
   Author: tanguy2m
   Plugin URI: https://github.com/tanguy2m/AddFromServer/

@@ -855,7 +855,7 @@ class EncodeExplorer
 <meta http-equiv="Content-Type" content="text/html; charset=<?php print $this->getConfig('charset'); ?>">
 <link rel="stylesheet" type="text/css" href="browse.css" />
 <!-- <meta charset="<?php print $this->getConfig('charset'); ?>" /> -->
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <?php
 if(($this->getConfig('thumbnails') != null && $this->getConfig('thumbnails') == true && $this->mobile == false))
 { 
@@ -909,7 +909,7 @@ if(isset($_ERROR) && strlen($_ERROR) > 0)
 if($this->mobile == false)
 {
 ?>
-<tr class="row one header">
+<tr id="<?php $this->location->getDir(false, false, true, 0);?>" class="row one header">
   <td class="icon"> </td>
   <td class="name"><?php print $this->makeArrow("name");?></td>
   <td class="size"><?php print $this->makeArrow("size"); ?></td>

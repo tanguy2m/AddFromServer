@@ -321,43 +321,49 @@ $("input#launch").click(function() {
                .addClass("sending").attr('title','En cours d\'envoi');
       },$(this)),
       
-      datatype: 'json',
-      
-      success: jQuery.proxy(function(data) {
-	  
-		$(this).removeClass("sending"); // Dans tous les cas on supprime l'état "sending"
-		
+      success: jQuery.proxy(function(data) {	
 		try { // Le parseJSON peut échouer
-			var status = jQuery.parseJSON(data).stat;			
-			if (status == "ok") // Si la requête n'a pas échoué
-			  document.getElementById('browser').contentWindow.addPwgLink($(this),jQuery.parseJSON(data).result.image_id);
-			else {
-			  $(this).addClass("error")
+			var answer = jQuery.parseJSON(data);		
+			if (answer.stat == "ok") {// Si la requête n'a pas échoué
+				//TODO: si au moins 1 miniature à charger
+				for (var i=0; i < answer.result.derivatives.length - 1; i++) {
+					$.ajaxq("fichiers",{
+						url: answer.result.derivatives[i] + "&ajaxload=true"
+					},true);
+				}
+				$.ajaxq("fichiers",{
+					url: answer.result.derivatives[answer.result.derivatives.length - 1] + "&ajaxload=true",
+					success: jQuery.proxy(function(){
+						$(this).removeClass("sending");
+						document.getElementById('browser').contentWindow.addPwgLink($(this),answer.result.image_id);
+						var remaining = parseInt($("#nbRestant").html());
+						if(remaining > 1) {
+						  $("#nbRestant").html(remaining-1);
+						  $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
+						} else {
+							$("#status.start").hide();
+							
+							$("#status.end").empty()
+							.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
+							  nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
+							$("#status.end").show();
+							
+							updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
+						}
+					},$(this))
+				},true);
+			} else {
+			  $(this)
+			  .removeClass("sending").addClass("error")
 			  .attr('title','Erreur lors du transfert');
-			  errorNotif(image_name, jQuery.parseJSON(data).message);
+			  errorNotif(image_name, answer.message);
 			}
 		}
 		catch (error) { 
-			$(this).addClass("error")
+			$(this).removeClass("sending").addClass("error")
 				.attr('title','Erreur lors du transfert');
 			errorNotif(image_name, data);
 		}
-		
-		var remaining = parseInt($("#nbRestant").html());
-		if(remaining > 1) {
-		  $("#nbRestant").html(remaining-1);
-		  $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
-		} else {
-			$("#status.start").hide();
-			
-			$("#status.end").empty()
-			.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
-			  nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
-			$("#status.end").show();
-			
-			updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
-		}
-		
       },$(this))
     });
   });

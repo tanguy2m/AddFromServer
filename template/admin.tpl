@@ -1,4 +1,4 @@
-{combine_script id='ajaxq' load='header' require='jquery' path="$plugin_folder/template/js/jquery.ajaxq.js"}
+{combine_script id='ajaxq' load='header' require='jquery' path="$plugin_folder/template/js/ajaxq.js"}
 {combine_script id='treat' load='header' require='jquery' path="$plugin_folder/template/js/admin.js"}
 {combine_script id='jquery.jgrowl' load='footer' require='jquery' path='themes/default/js/plugins/jquery.jgrowl_minimized.js'}
 {combine_script id='jquery.ui.progressbar' load='footer'}

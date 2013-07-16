@@ -140,8 +140,11 @@ function ws_images_addFromServer($params, &$service) {
         unlink($real_path);
         symlink($original, $real_path);
     }
-
-    return array('image_id' => $image_id, 'url' => make_picture_url($url_params));
+	
+	//TODO: si erreur sur ws pwg.getMissingDerivatives ?
+	//TODO: si pas de conf derivatives ou valeurs non reconnues ?
+	$derivatives = $service -> invoke("pwg.getMissingDerivatives", array('types' => $conf['AddFromServer']['derivatives'], 'ids' => $image_id));
+	return array('image_id' => $image_id, 'url' => make_picture_url($url_params), 'derivatives' => $derivatives['urls']);
 }
 
 // ---------------------------

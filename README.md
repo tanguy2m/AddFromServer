@@ -8,17 +8,17 @@ L'ajout se fait par dossier avec la possibilité d'ajouter un tag pour toutes le
 La conf doit être déclarée avant d'activer le plugin:
 ```php
 $conf['AddFromServer'] = array(
-  /* Paramètres obligatoires */
+  /* Paramètre obligatoire */
   'photos_local_folder' => '/c/Photos/', /* Dossier de stockage local des photos */  
+  /* Paramètres facultatifs */
+  'derivatives' => array('small','thumb'), /*  Derivatives Piwigo à générer à chaque upload */
+  'systematic_tag' => 'à trier' /* Tag systématique ajouté lors de l'upload */
   'removeOriginals' => true, /* Mise à la corbeille de l'original si image supprimée du site */
   /* Si removeOriginals = true */
   'photos_bin_folder'   => '/c/Poubelle/', /* Corbeille utilisée lors de la suppression */
   'delete_type' => 'sudoMove', /* 'simpleMove' (rename php), 'sudoMove' (sudo move linux)*/
   /* Si delete_type = sudoMove */
   'sudo_user' => 'toto', /* Utilisateur à utiliser pour le sudo */
-  /* Paramètres facultatifs */
-  'derivatives' => array('small','thumb'), /*  Derivatives Piwigo à générer à chaque upload */
-  'systematic_tag' => 'à trier' /* Tag systématique ajouté lors de l'upload */
 );
 ```
 Si le plugin GThumb+ est installé et actif, les miniatures nécessaires seront générées lors de l'upload automatiquement.

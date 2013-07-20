@@ -140,11 +140,46 @@ function ws_images_addFromServer($params, &$service) {
         unlink($real_path);
         symlink($original, $real_path);
     }
+  
+	$output = array(
+		'image_id' => $image_id,
+		'url' => make_picture_url($url_params),
+		'derivatives' => array() //Default value
+	);
 	
-	//TODO: si erreur sur ws pwg.getMissingDerivatives ?
-	//TODO: si pas de conf derivatives ou valeurs non reconnues ?
-	$derivatives = $service -> invoke("pwg.getMissingDerivatives", array('types' => $conf['AddFromServer']['derivatives'], 'ids' => $image_id));
-	return array('image_id' => $image_id, 'url' => make_picture_url($url_params), 'derivatives' => $derivatives['urls']);
+	// ---------------------------
+	// Derivatives urls generation
+	// ---------------------------
+	
+	$types = array();
+	if(!empty($conf['AddFromServer']['derivatives']) && is_array($conf['AddFromServer']['derivatives']))
+		$types = $conf['AddFromServer']['derivatives'];
+
+	include_once(PHPWG_ROOT_PATH.'/include/functions_plugins.inc.php');	
+	$gthumb = get_db_plugins('active', 'GThumb');
+	$gfmd = get_db_plugins('active', 'getFullMissingDerivatives');
+	
+	if (!empty($gthumb) && !empty($gfmd)){
+		$types[] = 'custom';
+		$derivatives = $service -> invoke("pwg.getFullMissingDerivatives", array(
+		  'types' => $types,
+		  'custom_width' => 9999,
+		  'custom_height' => $conf['GThumb']['height'],
+		  'ids' => $image_id
+		));
+	} else if (!empty($types)){
+		$derivatives = $service -> invoke("pwg.getMissingDerivatives", array(
+		  'types' => $types,
+		  'ids' => $image_id
+		));
+	}
+	if ( !empty($derivatives) ) {
+		if(strtolower(@get_class($derivatives)) == 'pwgerror')
+			return $derivatives;
+		$output['derivatives'] = $derivatives['urls'];
+	}
+	
+	return $output;
 }
 
 // ---------------------------

@@ -291,6 +291,34 @@ function updateChemin(path) {
 //         Ajout des photos au site        //
 // --------------------------------------- //
 
+function postSending(cell,success,image_id){
+
+	cell.removeClass("sending");
+	if (success) {	
+		document.getElementById('browser').contentWindow.addPwgLink(cell,image_id);
+	} else {
+		cell
+			.addClass("error")
+			.attr('title','Erreur lors du transfert');
+	}
+	
+	var remaining = parseInt($("#nbRestant").html());
+	var nbTotal = $("span.missing").attr("id");
+	var category_id = $("select#albumSelect option:selected").val();
+
+	if(remaining > 1) {
+		$("#nbRestant").html(remaining-1);
+		$("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
+	} else {
+		$("#status.start").hide();             
+		$("#status.end").empty()
+			.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
+				nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
+		$("#status.end").show();             
+		updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
+	}
+}
+
 $(function() {
 $("input#launch").click(function() {
     
@@ -321,50 +349,32 @@ $("input#launch").click(function() {
                .addClass("sending").attr('title','En cours d\'envoi');
       },$(this)),
       
-      success: jQuery.proxy(function(data) {	
-		try { // Le parseJSON peut échouer
-			var answer = jQuery.parseJSON(data);		
-			if (answer.stat == "ok") {// Si la requête n'a pas échoué
-				//TODO: si au moins 1 miniature à charger
-				for (var i=0; i < answer.result.derivatives.length - 1; i++) {
-					$.ajaxq("fichiers",{
-						url: answer.result.derivatives[i] + "&ajaxload=true"
-					},true);
-				}
-				$.ajaxq("fichiers",{
-					url: answer.result.derivatives[answer.result.derivatives.length - 1] + "&ajaxload=true",
-					success: jQuery.proxy(function(){
-						$(this).removeClass("sending");
-						document.getElementById('browser').contentWindow.addPwgLink($(this),answer.result.image_id);
-						var remaining = parseInt($("#nbRestant").html());
-						if(remaining > 1) {
-						  $("#nbRestant").html(remaining-1);
-						  $("#progressbar").progressbar({ value: (1-(remaining-1)/nbTotal)*100 });
-						} else {
-							$("#status.start").hide();
-							
-							$("#status.end").empty()
-							.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
-							  nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
-							$("#status.end").show();
-							
-							updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
+		success: jQuery.proxy(function(data) {  
+			try { // Le parseJSON peut échouer
+				var answer = jQuery.parseJSON(data);    
+				if (answer.stat == "ok") {// Si la requête n'a pas échoué
+					var nbDerivatives = answer.result.derivatives.length;
+					if (nbDerivatives > 0) {
+						$.ajaxq("fichiers",{
+							url: answer.result.derivatives[0] + "&ajaxload=true",
+							success: jQuery.proxy(postSending,$(this),$(this),true,answer.result.image_id) //Les premiers seront les derniers
+						},true);
+						for (var i=1; i < nbDerivatives; i++) {
+							$.ajaxq("fichiers",{url: answer.result.derivatives[i] + "&ajaxload=true"},true);
 						}
-					},$(this))
-				},true);
-			} else {
-			  $(this)
-			  .removeClass("sending").addClass("error")
-			  .attr('title','Erreur lors du transfert');
-			  errorNotif(image_name, answer.message);
+					} else {
+						postSending($(this),true, answer.result.image_id);
+					}
+				} else {
+					errorNotif(image_name, answer.message);
+					postSending($(this),false);
+				}
 			}
-		}
-		catch (error) { 
-			$(this).removeClass("sending").addClass("error")
-				.attr('title','Erreur lors du transfert');
-			errorNotif(image_name, data);
-		}
-      },$(this))
+			catch (error) {
+				errorNotif(image_name, data);
+				postSending($(this),false);
+			}
+		},$(this))
     });
   });
 });

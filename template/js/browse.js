@@ -1,8 +1,8 @@
-function addPwgLink(cell,photo_ID) {
+function addPwgLink(cell,photo_ID,url) {
     cell
     .addClass('present')
     .removeAttr("title")
-    .append('<a id="' + photo_ID + '" href="./../../../picture.php?/' + photo_ID + '" target="_blank" title="Photo dans Piwigo"></a>')
+    .append('<a id="' + photo_ID + '" href="' + url + '" target="_blank" title="Photo dans Piwigo"></a>')
     .children("a").append('<img src="./../../../admin/themes/clear/icon/category_elements.png" height="16" width="16"/>');
 }
 
@@ -124,7 +124,7 @@ $(function() {
                         .removeAttr("title")
                         .attr("title","Image en double");
                     } else {
-						addPwgLink($td_site,resultat.id);
+						addPwgLink($td_site,resultat.id,'./../../../picture.php?/' + resultat.id);
                     }
                 }
                 else {

@@ -291,11 +291,11 @@ function updateChemin(path) {
 //         Ajout des photos au site        //
 // --------------------------------------- //
 
-function postSending(cell,success,image_id){
+function postSending(cell,success,image_id,url){
 
 	cell.removeClass("sending");
 	if (success) {	
-		document.getElementById('browser').contentWindow.addPwgLink(cell,image_id);
+		document.getElementById('browser').contentWindow.addPwgLink(cell,image_id,url);
 	} else {
 		cell
 			.addClass("error")
@@ -357,13 +357,13 @@ $("input#launch").click(function() {
 					if (nbDerivatives > 0) {
 						$.ajaxq("fichiers",{
 							url: answer.result.derivatives[0] + "&ajaxload=true",
-							success: jQuery.proxy(postSending,$(this),$(this),true,answer.result.image_id) //Les premiers seront les derniers
+							success: jQuery.proxy(postSending,$(this),$(this),true,answer.result.image_id,answer.result.url) //Les premiers seront les derniers
 						},true);
 						for (var i=1; i < nbDerivatives; i++) {
 							$.ajaxq("fichiers",{url: answer.result.derivatives[i] + "&ajaxload=true"},true);
 						}
 					} else {
-						postSending($(this),true, answer.result.image_id);
+						postSending($(this),true, answer.result.image_id, answer.result.url);
 					}
 				} else {
 					errorNotif(image_name, answer.message);

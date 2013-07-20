@@ -40,7 +40,7 @@ function new_ws($arr) {
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
         array(
-            'prefix_path' => array(),
+            'prefix_path' => array('default' => null),
             'images_paths' => array()
         ),
         '<b>Admin only</b><br>

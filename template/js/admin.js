@@ -269,6 +269,7 @@ function razMissingNb() {
 }
 
 function changeFolder(folder) {
+  $.ajaxq.clear("fichiers");
   hideBrowser();
   $("#browser").attr("src",pluginPath+"template/browse.php?dir=photos/"+folder);
 }

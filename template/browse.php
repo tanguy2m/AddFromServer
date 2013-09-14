@@ -889,7 +889,7 @@ $(document).ready(function() {
 }
 ?> 
 <!-- Script perso permettant de récupérer le chemin vers le dossier -->
-<script type="text/javascript" src="js/jquery.ajaxq.js"></script>
+<script type="text/javascript" src="js/ajaxq.js"></script>
 <script type="text/javascript" src="js/browse.js"></script>
 </head>
 <body class="<?php print ($this->mobile == true?"mobile":"standard");?>">
@@ -909,7 +909,7 @@ if(isset($_ERROR) && strlen($_ERROR) > 0)
 if($this->mobile == false)
 {
 ?>
-<tr id="<?php $this->location->getDir(false, false, true, 0);?>" class="row one header">
+<tr id="<?php print $this->location->getDir(false, false, true, 0); ?>" class="row one header">
   <td class="icon"> </td>
   <td class="name"><?php print $this->makeArrow("name");?></td>
   <td class="size"><?php print $this->makeArrow("size"); ?></td>

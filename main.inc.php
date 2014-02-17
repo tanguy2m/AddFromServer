@@ -52,14 +52,14 @@ function new_ws($arr) {
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
         array(
-            'prefix_path' => array('flags' => WS_PARAM_OPTIONAL),
-            'images_paths' => array()
+            'prefix_path' => array('default' => '', 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']<br>Valeur par défaut = vide'),
+            'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
         ),
-        '<b>Admin only</b><br>
-        Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.<br>
-		Le paramètre \'prefix_path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\'] et <b>doit se terminer par un /</b><br>
-		Le paramètre \'images_paths\' est une liste d\'emplacements d\'images relatifs à prefix_path. Séparation par ; ou |<br>
-		Si prefix_path n\'est pas renseigné, le path est relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']'
+		'Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.',
+		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
+		array(
+			'admin_only' => true
+		)
     );
 	
 	// Ajout d'un web-service permettant de supprimer des photos du serveur

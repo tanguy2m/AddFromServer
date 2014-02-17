@@ -167,32 +167,13 @@ function ws_images_addFromServer($params, &$service) {
 // ---------------------------
 
 function ws_images_existFromPath($params, &$service) {
-    
-    global $conf;
-    
-    if (!is_admin()){
-        return new PwgError(401, 'Access denied');
-    }
-    
-	if ( empty($params['images_paths']) ) { // Aucun paramètre spécifié
-		return new PwgError(WS_ERR_INVALID_PARAM, "images_paths shall be defined");
-	}
-	
-    // Récupération d'un tableau de noms de fichiers
-    $file_names = preg_split(
-        '/[;\|]/',
-        stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
-        -1,
-        PREG_SPLIT_NO_EMPTY
-    );
-    $file_names = array_flip($file_names);
-    
-	// Récupération du préfixe éventuel des dossiers
-	$prefix_path = empty($params['prefix_path']) ? '' : $params['prefix_path'];
+
+    $file_names = array_flip($params['images_paths']);
 	
     foreach($file_names as $file_name => $value) {
         
-        $full_path = $conf['AddFromServer']['photos_local_folder'].$prefix_path.$file_name;
+		global $conf;
+        $full_path = join('/', array($conf['AddFromServer']['photos_local_folder'], $prefix_path, $file_name));
         
         // Image path verification
         if (!is_file($full_path)) {
@@ -227,8 +208,7 @@ function ws_images_existFromPath($params, &$service) {
         }        
     }
  
-    return $file_names;
-     
+    return $file_names; 
 }
 
 // ------------------------------

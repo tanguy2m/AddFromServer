@@ -18,9 +18,9 @@ function processImages(args){
     var $slice = $(args.selector).slice(0,maxNumber);
     while ($slice.length > 0) { // Si il y a au moins une photo, requête
     
-        var filesNames = "";
+        var filesNames = new Array();
         $slice.each(function() {
-            filesNames += $(this).closest('tr').attr('id') + ';';
+            filesNames.push($(this).closest('tr').attr('id'));
         });       
 
         $.ajaxq("files", {

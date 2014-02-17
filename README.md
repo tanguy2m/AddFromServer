@@ -11,7 +11,7 @@ $conf['AddFromServer'] = array(
   /* Paramètre obligatoire */
   'photos_local_folder' => '/c/Photos/', /* Dossier de stockage local des photos */  
   /* Paramètres facultatifs */
-  'derivatives' => array('small','thumb'), /*  Derivatives Piwigo à générer à chaque upload */
+  'derivatives' => array('small'), /*  Derivatives Piwigo à générer à chaque upload (thumb automatique) */
   'systematic_tag' => 'à trier' /* Tag systématique ajouté lors de l'upload */
   'removeOriginals' => true, /* Mise à la corbeille de l'original si image supprimée du site */
   /* Si removeOriginals = true */

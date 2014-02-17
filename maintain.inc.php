@@ -1,14 +1,14 @@
 <?php
 
-	if (!defined('PHPWG_ROOT_PATH')) die('Hacking attempt!');
-	
-	function plugin_install($plugin_id, $plugin_version, &$errors) // method called on first activation
+class AddFromServer_maintain extends PluginMaintain	{
+
+	function install($plugin_version, &$errors=array()) // method called on first activation
 	{ 
 		// Temp dir creation
 		mkdir(PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer',0755);
 	}
 	
-	function plugin_activate($plugin_id, $plugin_version, &$errors){
+	function activate($plugin_version, &$errors=array()){
         
         global $conf;
         if ( empty($conf['AddFromServer']) || empty($conf['AddFromServer']['photos_local_folder']) ){
@@ -25,15 +25,15 @@
     	symlink($conf['AddFromServer']['photos_local_folder'],realpath(dirname(__FILE__)).'/template/photos');
 	}
     
-	function plugin_deactivate($plugin_id){
+	function deactivate(){
         // Remove symlink to photos directory
     	unlink(realpath(dirname(__FILE__)).'/template/photos');
 	}
 	
-	function plugin_uninstall($plugin_id)
+	function uninstall()
 	{ 
 		// Delete Temp dir
 		rmdir(PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer');
 	}
-
-  ?>
+}
+?>

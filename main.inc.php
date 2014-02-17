@@ -14,7 +14,7 @@ add_event_handler('ws_add_methods', 'new_ws');
 function new_ws($arr) {
 
     global $conf;
-    include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php');
+    include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php'); //TODO: à supprimer
     $service = &$arr[0];
 	
 	// Ajout d'un web-service permettant d'ajouter des images depuis le serveur
@@ -22,17 +22,29 @@ function new_ws($arr) {
         'pwg.images.addFromServer',
         'ws_images_addFromServer',
         array(
-            'image_path' => array(),
-            'category' => array('default' => null),
-            'name' => array('default' => null),
-            'author' => array('default' => null),
-            'comment' => array('default' => null),
-            'level' => array('default' => 0, 'maxValue' => $conf['available_permission_levels']),
-            'tags' => array('default' => null),
-            'image_id' => array('default' => null),
-            'date_creation' => array('default' => null)
+            'image_path' => array('info' => 'Chemin <b>complet</b> de l\'image sur le serveur'), // Mandatory
+            'category' => array(
+				'flags' => WS_PARAM_OPTIONAL|WS_PARAM_FORCE_ARRAY,
+				'type' => WS_TYPE_ID,
+				'info' => 'Tableau d\'ids (ou id unique) des catégories auxquelles l\'image sera liée.'
+			),
+            'name' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Nom de l\'image'),
+            'author' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Auteur de l\'image'),
+            'comment' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Commentaire associé à l\'image'),
+            'level' => array(
+				'type' => WS_TYPE_INT|WS_TYPE_POSITIVE,
+				'default' => 0, 'maxValue' => max($conf['available_permission_levels']),
+				'info' => 'Entier spécifiant le niveau de confidentialité'
+			),
+            'tags' => array('flags' => WS_PARAM_OPTIONAL|WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau de tags à appliquer à l\'image'),
+            'image_id' => array('flags' => WS_PARAM_OPTIONAL, 'type' => WS_TYPE_ID, 'info' => 'ID de la photo dans le cas d\'un update'),
+            'date_creation' => array('flags' => WS_PARAM_OPTIONAL)
         ),
-        '<b>Admin only</b><br>Permet d\'ajouter une image depuis le filesystem du serveur.'
+        'Permet d\'ajouter une image au site depuis le filesystem du serveur.<br>Attention, une fois ajoutée l\'image originale ne doit pas être déplacée',
+		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
+		array(
+			'admin_only' => true
+		)
 	);
 
 	// Ajout d'un web-service permettant de vérifier la présence d'une image dans Piwigo
@@ -40,7 +52,7 @@ function new_ws($arr) {
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
         array(
-            'prefix_path' => array('default' => null),
+            'prefix_path' => array('flags' => WS_PARAM_OPTIONAL),
             'images_paths' => array()
         ),
         '<b>Admin only</b><br>

@@ -4,123 +4,107 @@
 //    WebService addFromServer
 // ---------------------------
 // Adaptation de la méthode Piwigo: /include/ws_functions.inc.php - Fonction: ws_images_addSimple
+// http://piwigo.org/dev/browser/trunk/ws.php#L441
+//
+// 1. Copie l'image originale dans le dossier LOCAL_DIR/AddFromServer/
+// 2. Fonction add_uploaded_file
+//    a. Déplacement de la copie dans UPLOAD_DIR/
+//    b. Redimensionnement de l'original (configurable)
+// 3. Si original pas redimensionné, remplacement du fichier dans UPLOAD_DIR par un lien vers l'original
 
 function ws_images_addFromServer($params, &$service) {
     
-    global $conf;
-    // Admin only
-    if (!is_admin()) {
-        return new PwgError(401, 'Access denied');
-    }
-    
-    $params['image_path'] = stripslashes($params['image_path']);
-    
+    global $conf;    
+
     // Image path verification
+    $params['image_path'] = stripslashes($params['image_path']);
     if (!is_file($params['image_path'])) {
         return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid: ".$params['image_path']);
     }
 
+    // Image_id verification
+	if(isset($params['image_id'])) {
+		$query = '
+		SELECT *
+		FROM '.IMAGES_TABLE.'
+		WHERE id = '.$params['image_id'].';';
+		$image_row = pwg_db_fetch_assoc(pwg_query($query));
+		if ($image_row == null) {
+			return new PwgError(WS_ERR_INVALID_PARAM, "image_id not found");
+		}
+	}
+	
     // Image already known ?
     include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
+	$md5 = md5_file($params['image_path']);
     $query = '
       SELECT *
       FROM '.IMAGES_TABLE.'
-      WHERE md5sum = \''.md5_file($params['image_path']).'\'
+      WHERE md5sum = \''.$md5.'\'
       ;';
     $image_row = pwg_db_fetch_assoc(pwg_query($query));
     if ($image_row != null) {
         return new PwgError(WS_ERR_INVALID_PARAM, "Image already in database");
     }
-
-    // Image_id verification
-    $params['image_id'] = (int) $params['image_id'];
-    if ($params['image_id'] > 0) {
-        $query = '
-        SELECT *
-        FROM '.IMAGES_TABLE.'
-        WHERE id = '.$params['image_id'].'
-                             ;';
-        $image_row = pwg_db_fetch_assoc(pwg_query($query));
-        if ($image_row == null) {
-            return new PwgError(404, "image_id not found");
-        }
-    }
-
-    // Category
-    $params['category'] = (int) $params['category'];
-    if ($params['category'] <= 0 and $params['image_id'] <= 0) {
-        return new PwgError(WS_ERR_INVALID_PARAM, "Invalid category_id");
-    }
-
+	
     // Copy original in temporary folder
     $original = $params['image_path'];
     $params['image_path'] = PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/'.basename($original);
     copy($original, $params['image_path']);
 
     require_once(PHPWG_ROOT_PATH.'admin/include/functions_upload.inc.php');
-    // Fonction add_uploaded_file du script /admin/include/functions_upload.inc.php
+    // Fonction add_uploaded_file du script http://piwigo.org/dev/browser/trunk/admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
         $params['image_path'],
-        basename($params['image_path']),
-        $params['category'] > 0 ? array($params['category']) : null,
-        isset($params['level']) ? $params['level'] : null,
-        $params['image_id'] > 0 ? $params['image_id'] : null
+        null, // Comportement implémenté dans add_uploaded_file suffisant
+        isset($params['category']) ? $params['category'] : null, // Array attendu
+        $params['level'], // level has a default value
+        isset($params['image_id']) ? $params['image_id'] : null,
+		$md5
     );
-
-    $info_columns = array('name', 'author', 'comment', 'level', 'date_creation', );
-
+	
+	// Update IMAGES table with provided additional information
+    $info_columns = array('name', 'author', 'comment', 'date_creation'); // level already inserted by add_uploaded_file
     foreach($info_columns as $key) {
         if (isset($params[$key])) {
             $update[$key] = $params[$key];
         }
     }
-
-    if (count(array_keys($update)) > 0) {
-        $update['id'] = $image_id;
-
-        include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
-        mass_updates(
-            IMAGES_TABLE,
-            array(
-                'primary' => array('id'),
-                'update' => array_diff(array_keys($update), array('id'))),
-                array($update)
-            );
-    }
-
-    // Add tags to the image if specified
-	$tag_ids = array();
+	single_update(
+		IMAGES_TABLE,
+		$update, // single_update function will return immediatly if $update is empty
+		array('id' => $image_id)
+	);
 	
+    // Add tags to the image if specified
+	$tag_ids = array();	
     if (!empty($params['tags'])) {
-        $tag_names = explode(',', $params['tags']);
+        $tag_names = $params['tags'];
     }	
 	if (!empty($conf['AddFromServer']['systematic_tag'])) {
 		$tag_names[] =  $conf['AddFromServer']['systematic_tag'];
 	}
-	
 	foreach($tag_names as $tag_name) {
-		$tag_id = tag_id_from_tag_name($tag_name);
-		array_push($tag_ids, $tag_id);
+		$tag_ids[] = tag_id_from_tag_name($tag_name);
 	}
 	add_tags($tag_ids, array($image_id));
-	
+
+	// URL build-up
     $url_params = array('image_id' => $image_id);
+    if (isset(params['category']) and count(params['category']) == 1){
+		$query = '
+		SELECT id, name, permalink
+		FROM '.CATEGORIES_TABLE.'
+		WHERE id = '.$params['category'].'
+		;';
+		$result = pwg_query($query);
+		$category = pwg_db_fetch_assoc($result);
 
-    if ($params['category'] > 0) {
-        $query = '
-        SELECT id, name, permalink
-        FROM '.CATEGORIES_TABLE.'
-        WHERE id = '.$params['category'].'
-        ;';
-        $result = pwg_query($query);
-        $category = pwg_db_fetch_assoc($result);
-
-        $url_params['section'] = 'categories';
-        $url_params['category'] = $category;
+		$url_params['section'] = 'categories';
+		$url_params['category'] = $category;
     }
 
-    // update metadata from the uploaded file (exif/iptc), even if the sync
-    // was already performed by add_uploaded_file().
+    //Symlink original picture if not resized
     $query = '
       SELECT
       path
@@ -128,13 +112,9 @@ function ws_images_addFromServer($params, &$service) {
       WHERE id = '.$image_id.'
       ;';
     list($file_path) = pwg_db_fetch_row(pwg_query($query));
-
-    require_once(PHPWG_ROOT_PATH.'admin/include/functions_metadata.php');
-    sync_metadata(array($image_id));
-
-    //Symlink original picture if not resized
+	
     $need_resize = ($conf['original_resize'] and need_resize($file_path, $conf['original_resize_maxwidth'], $conf['original_resize_maxheight']));
-    if (!$conf['original_resize'] or!$need_resize) {
+    if (!$conf['original_resize'] or !$need_resize) {
         //Replace HIGH picture by a symlink to the original
         $real_path = realpath($file_path);
         unlink($real_path);
@@ -143,7 +123,7 @@ function ws_images_addFromServer($params, &$service) {
   
 	$output = array(
 		'image_id' => $image_id,
-		'url' => make_picture_url($url_params),
+		'url' => make_picture_url($url_params), // http://piwigo.org/dev/browser/trunk/include/functions_url.inc.php
 		'derivatives' => array() //Default value
 	);
 	

@@ -217,34 +217,13 @@ function ws_images_existFromPath($params, &$service) {
 
 function ws_images_deleteFromServer($params, &$service) {
 	
-	// Vérification des droits d'admin
-	if (!is_admin()) {
-		return new PwgError(401, 'Access denied');
-	}
-	
-	// Vérification des paramètres d'entrée
-	if ( empty($params['images_paths']) ) { // Aucun paramètre spécifié
-		return new PwgError(WS_ERR_INVALID_PARAM, "images_paths shall be defined");
-	}
-	
 	// Tableau des images à déplacer dans la corbeille
 	// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
 	$paths_to_be_deleted = array();
-
-	// Récupération de la liste des chemins d'image à traiter
-	$file_names = preg_split(
-		'/[;\|]/',
-		stripslashes($params['images_paths']), //Permet de gérer les single quote (remplacé par \' par php)
-		-1,
-		PREG_SPLIT_NO_EMPTY
-	);
-	
-	// Récupération du préfixe éventuel des dossiers
-	$prefix_path = empty($params['prefix_path']) ? '' : $params['prefix_path'];
 	
 	// Récupération des chemins complets
-	foreach ($file_names as $file_name) {
-		array_push($paths_to_be_deleted, $prefix_path.$file_name);
+	foreach ($params['images_paths'] as $file_name) {
+		array_push($paths_to_be_deleted, join('/',array($prefix_path,$file_name));
 	}
 	
 	// Déplacement des fichiers vers la corbeille

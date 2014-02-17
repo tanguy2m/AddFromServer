@@ -14,7 +14,6 @@ add_event_handler('ws_add_methods', 'new_ws');
 function new_ws($arr) {
 
     global $conf;
-    include_once(ADD_FROM_SERVER_PATH.'include/ws.inc.php'); //TODO: à supprimer
     $service = &$arr[0];
 	
 	// Ajout d'un web-service permettant d'ajouter des images depuis le serveur
@@ -55,7 +54,7 @@ function new_ws($arr) {
             'prefix_path' => array('default' => '', 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']<br>Valeur par défaut = vide'),
             'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
         ),
-		'Permet de vérifier la présence d\'une liste de photos sur Piwigo à partir de leur chemin commum et de leur nom sur le serveur.',
+		'Permet de vérifier la présence d\'une liste de photos sur le serveur à partir de leur chemin commum et de leur nom sur le serveur.',
 		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
 		array(
 			'admin_only' => true
@@ -67,15 +66,14 @@ function new_ws($arr) {
         'pwg.images.deleteFromServer',
         'ws_images_deleteFromServer',
         array(
-			'prefix_path' => array('default' => null),
-			'images_paths' => array('default' => null)
+			'prefix_path' => array('default' => '', 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']<br>Valeur par défaut = vide'),
+            'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
         ),
-        '<b>Admin only</b><br>
-		Supprime une liste de photos du serveur<br>
-		Le paramètre \'prefix_path\' est relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\'] et <b>doit se terminer par un /</b><br>
-		Le paramètre \'images_paths\' est une liste d\'emplacements d\'images relatifs à prefix_path. Séparation par ; ou |<br>
-		Si prefix_path n\'est pas renseigné, le path est relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']
-        '
+		'Supprime une liste de photos du serveur',
+		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
+		array(
+			'admin_only' => true
+		)
     );
 }
 

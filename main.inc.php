@@ -79,20 +79,23 @@ function new_ws($arr) {
 
 // Add a new tab in photos_add page
 add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
-function addFromServer_add_tab($sheets, $id) { 
-    
-    if ($id == 'photos_add') {
-        $sheets['addFromServer'] = array(
-            'caption' => l10n('Depuis serveur'),
-            'url' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
-        );
-    }	 
-    
-    return $sheets;
+function addFromServer_add_tab($sheets, $id) { 	
+	if ($id == 'photos_add') {
+		$sheets['addFromServer'] = array(
+			'caption' => l10n('Depuis serveur'),
+			'url' => get_root_url().'admin.php?page=plugin-'.basename(dirname(__FILE__))
+		);
+	}		
+	return $sheets;
 }
 
-// Add a new delete button in picture.php
-add_event_handler('loc_end_picture', 'add_button');
+// Add a new delete button in picture.php if Admin Tools plugin is not installed
+include_once(PHPWG_ROOT_PATH.'/include/functions_plugins.inc.php');	
+$admintools = get_db_plugins('active', 'AdminTools');
+if (empty($admintools)){
+	add_event_handler('loc_end_picture', 'add_button');
+}
+
 function add_button() {
 	global $template, $page, $picture;
 	

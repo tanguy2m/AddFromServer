@@ -229,9 +229,14 @@ function ws_images_deleteFromServer($params, &$service) {
 	// Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
 	$paths_to_be_deleted = array();
 	
+	$prefix  = '';
+	if(!empty($params['prefix_path'])){
+		$prefix .= trim(stripslashes($params['prefix_path']),'/').'/'; // Uniquement un slash final
+	}
+	
 	// Récupération des chemins complets
 	foreach ($params['images_paths'] as $file_name) {
-		array_push($paths_to_be_deleted, join('/',array($prefix_path,$file_name)));
+		array_push($paths_to_be_deleted, $prefix.trim(stripslashes($file_name),'/')); // Suppression des slashs au début et à la fin
 	}
 	
 	// Déplacement des fichiers vers la corbeille

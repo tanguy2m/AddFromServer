@@ -51,7 +51,7 @@ function new_ws($arr) {
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
         array(
-            'prefix_path' => array('default' => '', 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']<br>Valeur par défaut = vide'),
+            'prefix_path' => array('info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'),
             'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
         ),
 		'Permet de vérifier la présence d\'une liste de photos sur le serveur à partir de leur chemin commum et de leur nom sur le serveur.',

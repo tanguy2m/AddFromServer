@@ -56,7 +56,7 @@ function ws_images_addFromServer($params, &$service) {
     // Fonction add_uploaded_file du script http://piwigo.org/dev/browser/trunk/admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
         $params['image_path'],
-        null, // Comportement implémenté dans add_uploaded_file suffisant
+        basename($params['image_path']),
         isset($params['category']) ? $params['category'] : null, // Array attendu
         $params['level'], // level has a default value
         isset($params['image_id']) ? $params['image_id'] : null,
@@ -65,6 +65,7 @@ function ws_images_addFromServer($params, &$service) {
 	
 	// Update IMAGES table with provided additional information
     $info_columns = array('name', 'author', 'comment', 'date_creation'); // level already inserted by add_uploaded_file
+	$update = array();
     foreach($info_columns as $key) {
         if (isset($params[$key])) {
             $update[$key] = $params[$key];
@@ -76,7 +77,7 @@ function ws_images_addFromServer($params, &$service) {
 		array('id' => $image_id)
 	);
 	
-    // Add tags to the image if specified
+	// Add tags to the image if specified
 	$tag_ids = array();	
     if (!empty($params['tags'])) {
         $tag_names = $params['tags'];
@@ -95,7 +96,7 @@ function ws_images_addFromServer($params, &$service) {
 		$query = '
 		SELECT id, name, permalink
 		FROM '.CATEGORIES_TABLE.'
-		WHERE id = '.$params['category'].'
+		WHERE id = '.$params['category'][0].'
 		;';
 		$result = pwg_query($query);
 		$category = pwg_db_fetch_assoc($result);
@@ -167,17 +168,24 @@ function ws_images_addFromServer($params, &$service) {
 // ---------------------------
 
 function ws_images_existFromPath($params, &$service) {
-
-    $file_names = array_flip($params['images_paths']);
+	
+	global $conf;
+	
+    $file_names = array_flip(array_map('stripslashes',$params['images_paths']));
+	
+	// Full-path construction
+	$prefix = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
+	if(!empty($params['prefix_path'])){
+		$prefix .= trim(stripslashes($params['prefix_path']),'/').'/'; // Uniquement un slash final
+	}
 	
     foreach($file_names as $file_name => $value) {
         
-		global $conf;
-        $full_path = join('/', array($conf['AddFromServer']['photos_local_folder'], $params['prefix_path'], $file_name));
+		$full_path = $prefix.trim($file_name,'/'); // Suppression des slashs au début et à la fin
         
         // Image path verification
         if (!is_file($full_path)) {
-            return new PwgError(WS_ERR_INVALID_PARAM, "Fichier inconnu: ".$file_name);
+            return new PwgError(WS_ERR_INVALID_PARAM, "Fichier inconnu: ".$full_path);
         }
         
         $md5 = md5_file($full_path);
@@ -194,7 +202,7 @@ function ws_images_existFromPath($params, &$service) {
 					WHERE id = '.$result[$md5].'
 					;';
 				list($path) = pwg_db_fetch_row(pwg_query($query));
-			
+
 				if(is_link($path) and (readlink($path) != $full_path)) {
 					$file_names[$file_name]["double"] = "yes";
 					$file_names[$file_name]["pwg_path"] = readlink($path);
@@ -205,7 +213,7 @@ function ws_images_existFromPath($params, &$service) {
 	    }
         else {
             return $result;
-        }        
+        }
     }
  
     return $file_names; 

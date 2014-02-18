@@ -12,7 +12,7 @@
 </script>
 {/literal}{/html_head}
 
-{include file="../../../../$plugin_folder/template/popups.inc.tpl"}
+{include file="../../../`$plugin_folder`template/popups.inc.tpl"}
 
 <div class="titrePage">
   <h2>

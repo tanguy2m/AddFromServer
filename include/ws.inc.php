@@ -91,7 +91,7 @@ function ws_images_addFromServer($params, &$service) {
 
 	// URL build-up
     $url_params = array('image_id' => $image_id);
-    if (isset(params['category']) and count(params['category']) == 1){
+    if (isset($params['category']) and count($params['category']) == 1){
 		$query = '
 		SELECT id, name, permalink
 		FROM '.CATEGORIES_TABLE.'
@@ -173,7 +173,7 @@ function ws_images_existFromPath($params, &$service) {
     foreach($file_names as $file_name => $value) {
         
 		global $conf;
-        $full_path = join('/', array($conf['AddFromServer']['photos_local_folder'], $prefix_path, $file_name));
+        $full_path = join('/', array($conf['AddFromServer']['photos_local_folder'], $params['prefix_path'], $file_name));
         
         // Image path verification
         if (!is_file($full_path)) {
@@ -223,7 +223,7 @@ function ws_images_deleteFromServer($params, &$service) {
 	
 	// Récupération des chemins complets
 	foreach ($params['images_paths'] as $file_name) {
-		array_push($paths_to_be_deleted, join('/',array($prefix_path,$file_name));
+		array_push($paths_to_be_deleted, join('/',array($prefix_path,$file_name)));
 	}
 	
 	// Déplacement des fichiers vers la corbeille

@@ -42,4 +42,20 @@ function move_to_bin($files) {
 	return $errors_list;
 }
 
+function get_cat_url_params($id){
+	$url_params = array();
+	$query = '
+		SELECT id, name, permalink
+		FROM '.CATEGORIES_TABLE.'
+		WHERE id = '.$id.'
+		;';
+	$result = pwg_query($query);
+	$category = pwg_db_fetch_assoc($result);
+
+	$url_params['section'] = 'categories';
+	$url_params['category'] = $category;
+
+	return $url_params;
+}
+
 ?>

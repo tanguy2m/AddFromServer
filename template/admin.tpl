@@ -41,7 +41,9 @@
 	<span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
 	  Choix de l'album: 
 	  <select id="albumSelect" name="category">
-		{html_options options=$category_options selected=$category_options_selected}
+		{foreach $category_options as $option}
+			<option value="{$option@key}" data-url="{$category_urls[$option@key]}">{$option}</option>
+		{/foreach}
 	  </select>
 	  <br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
   </div>

@@ -32,7 +32,15 @@
     array(), // Id de la catégorie sélectionnée par défaut
     'category_options' //Nom du tableau assigné au template
   );
-	
+
+  // Récupération des urls des catégories
+  $urls = array();
+  include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+  foreach ($template->get_template_vars('category_options') as $id => $name) {
+    $urls[$id] = make_index_url(get_cat_url_params($id));
+  }
+  $template->assign('category_urls',$urls);
+ 
   $template->assign(array(
     'plugin_folder'=> ADD_FROM_SERVER_PATH,
     'conf' => $conf['AddFromServer'],

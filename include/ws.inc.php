@@ -93,16 +93,8 @@ function ws_images_addFromServer($params, &$service) {
 	// URL build-up
     $url_params = array('image_id' => $image_id);
     if (isset($params['category']) and count($params['category']) == 1){
-		$query = '
-		SELECT id, name, permalink
-		FROM '.CATEGORIES_TABLE.'
-		WHERE id = '.$params['category'][0].'
-		;';
-		$result = pwg_query($query);
-		$category = pwg_db_fetch_assoc($result);
-
-		$url_params['section'] = 'categories';
-		$url_params['category'] = $category;
+		include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+		array_merge($url_params,get_cat_url_params($params['category'][0]));
     }
 
     //Symlink original picture if not resized

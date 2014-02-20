@@ -17,7 +17,7 @@ function ws_images_addFromServer($params, &$service) {
     global $conf;    
 
     // Image path verification
-    $params['image_path'] = stripslashes($params['image_path']);
+    $params['image_path'] = $conf['AddFromServer']['photos_local_folder'].stripslashes($params['image_path']);
     if (!is_file($params['image_path'])) {
         return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid: ".$params['image_path']);
     }

@@ -334,13 +334,13 @@ $("input#launch").click(function() {
   
   $("#browser").contents().find('td.site.missing').each(function (index) {
     
-    var image_name = $(this).closest('tr').find('a.item.file').text();
+    var image_name = $(this).closest('tr').attr('id');
     var category_id = $("select#albumSelect option:selected").val();
     
     $.ajaxq("fichiers",{
       url: 'ws.php?format=json',
       data: { method: 'pwg.images.addFromServer',
-              image_path: $("#fullDir").text() +  image_name,
+              image_path: $("#chemin").text() +  image_name,
               category: category_id,
               level: $("select[name=level] option:selected").val(),
 			},

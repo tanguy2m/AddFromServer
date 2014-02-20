@@ -16,12 +16,17 @@ function new_ws($arr) {
     global $conf;
     $service = &$arr[0];
 	
+	$commonArgs = array(
+		'prefix_path' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']'),
+		'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
+	);
+	
 	// Ajout d'un web-service permettant d'ajouter des images depuis le serveur
     $service -> addMethod(
         'pwg.images.addFromServer',
         'ws_images_addFromServer',
         array(
-            'image_path' => array('info' => 'Chemin <b>complet</b> de l\'image sur le serveur'), // Mandatory
+            'image_path' => array('info' => 'Chemin relatif à $conf[\'AddFromServer\'][\'photos_local_folder\'] de l\'image sur le serveur'), // Mandatory
             'category' => array(
 				'flags' => WS_PARAM_OPTIONAL|WS_PARAM_FORCE_ARRAY,
 				'type' => WS_TYPE_ID,
@@ -39,41 +44,29 @@ function new_ws($arr) {
             'image_id' => array('flags' => WS_PARAM_OPTIONAL, 'type' => WS_TYPE_ID, 'info' => 'ID de la photo dans le cas d\'un update'),
             'date_creation' => array('flags' => WS_PARAM_OPTIONAL)
         ),
-        'Permet d\'ajouter une image au site depuis le filesystem du serveur.<br>Attention, une fois ajoutée l\'image originale ne doit pas être déplacée',
+        'Ajoute une image au site depuis le filesystem du serveur.<br><b>Attention, une fois ajoutée l\'image originale ne doit pas être déplacée</b>',
 		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
-		array(
-			'admin_only' => true
-		)
+		array('admin_only' => true)
 	);
 
 	// Ajout d'un web-service permettant de vérifier la présence d'une image dans Piwigo
     $service -> addMethod(
         'pwg.images.existFromPath',
         'ws_images_existFromPath',
-        array(
-            'prefix_path' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'),
-            'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
-        ),
-		'Permet de vérifier la présence d\'une liste de photos sur le serveur à partir de leur chemin commum et de leur nom sur le serveur.',
+        $commonArgs,
+		'Vérifie la présence d\'une liste de photos sur le serveur',
 		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
-		array(
-			'admin_only' => true
-		)
+		array('admin_only' => true)
     );
 	
 	// Ajout d'un web-service permettant de supprimer des photos du serveur
 	$service -> addMethod(
         'pwg.images.deleteFromServer',
         'ws_images_deleteFromServer',
-        array(
-			'prefix_path' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Relatif à  $conf[\'AddFromServer\'][\'photos_local_folder\']'),
-            'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path')
-        ),
+        $commonArgs,
 		'Supprime une liste de photos du serveur',
 		ADD_FROM_SERVER_PATH.'include/ws.inc.php', // file to be included at runtime
-		array(
-			'admin_only' => true
-		)
+		array('admin_only' => true)
     );
 }
 

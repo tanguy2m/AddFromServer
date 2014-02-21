@@ -40,10 +40,10 @@ function infoNotif(titre, message) {
 jQuery(document).ready(function() {
 
     function fillCategoryListbox(selectId, selectedValue) {
-        jQuery.getJSON("ws.php?method=pwg.categories.getList", {
-            recursive: true,
-            fullname: true,
-            format: "json"
+        jQuery.getJSON("ws.php?format=json", {
+            method: "pwg.categories.getList",
+			recursive: true,
+            fullname: true
         }, function(data) {
             jQuery.each(
             data.result.categories, function(i, category) {
@@ -51,8 +51,12 @@ jQuery(document).ready(function() {
                 if (category.id == selectedValue) {
                     selected = "selected";
                 }
-
-                jQuery("<option/>").attr("value", category.id).attr("selected", selected).text(category.name).appendTo("#" + selectId);
+                jQuery("<option/>")
+					.attr("value", category.id)
+					.attr("selected", selected)
+					.attr("data-url",category.url)
+					.text(category.name)
+					.appendTo("#" + selectId);
             });
         });
     }
@@ -82,19 +86,16 @@ jQuery(document).ready(function() {
 
                 var newAlbum = jQuery.parseJSON(html).result.id;
                 jQuery(".addAlbumOpen").colorbox.close();
-
+				
+				/* Album selection refresh */
                 jQuery("#albumSelect").find("option").remove();
                 fillCategoryListbox("albumSelect", newAlbum);
 
-                /* we refresh the album creation form, in case the user wants to create another album */
+                /* Album creation form refresh, in case the user wants to create another album */
                 jQuery("#category_parent").find("option").remove();
-
                 jQuery("<option/>").attr("value", 0).text("------------").appendTo("#category_parent");
-
                 fillCategoryListbox("category_parent", newAlbum);
-
                 jQuery("#addAlbumForm form input[name=category_name]").val('');
-
                 jQuery("#albumSelection").show();
 
                 return true;

@@ -317,7 +317,6 @@ function postSending(cell,success,image_id,url){
 	
 	var remaining = parseInt($("#nbRestant").html());
 	var nbTotal = $("span.missing").attr("id");
-	var category_id = $("select#albumSelect option:selected").val();
 
 	if(remaining > 1) {
 		$("#nbRestant").html(remaining-1);
@@ -326,7 +325,7 @@ function postSending(cell,success,image_id,url){
 		$("#status.start").hide();             
 		$("#status.end").empty()
 			.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
-				nbTotal + ' photos. <a href="' + $('#albumSelect select[value='+category_id+']').data('url') + '" target="_blank">Afficher l\'album</a>');
+				nbTotal + ' photos. <a href="' + $("select#albumSelect option:selected").data('url') + '" target="_blank">Afficher l\'album</a>');
 		$("#status.end").show();             
 		updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
 	}

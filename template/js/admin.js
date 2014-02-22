@@ -18,7 +18,7 @@ function hideBrowser() { // Le dossier change dans browse.php
 ///////////////////////////
 
 function errorNotif(titre, message) {
-    jQuery.jGrowl(message, {
+    $.jGrowl(message, {
         theme: 'error',
         header: titre,
         sticky: true
@@ -26,7 +26,7 @@ function errorNotif(titre, message) {
 }
 
 function infoNotif(titre, message) {
-    jQuery.jGrowl(message, {
+    $.jGrowl(message, {
         theme: 'success',
         header: titre,
         life: 4000,
@@ -34,75 +34,86 @@ function infoNotif(titre, message) {
     });
 }
 
+///////////////////////////////////////
+//     Categories select filling     //
+///////////////////////////////////////
+
+function fillCategoryListbox(selector, selectedValue) {
+	$.getJSON("ws.php?format=json", {
+			method: "pwg.categories.getList",
+			recursive: true,
+			fullname: true
+		},
+		function(data) {
+			$.each(
+				data.result.categories, function(i, category) {
+					var selected = null;
+					if (category.id == selectedValue) {
+						selected = "selected";
+					}
+					$("<option/>")
+						.attr("value", category.id)
+						.attr("selected", selected)
+						.attr("data-url",category.url)
+						.text(category.name)
+						.appendTo("#" + selector);
+				}
+			);
+		}
+	);
+}
+
+$(function() {
+	fillCategoryListbox("albumSelect",-1);
+});
+
 ///////////////////////////////////////////////////
 //    Gestion de la popup "Ajout de catégorie"   //
 ///////////////////////////////////////////////////
-jQuery(document).ready(function() {
+$(document).ready(function() {
 
-    function fillCategoryListbox(selectId, selectedValue) {
-        jQuery.getJSON("ws.php?format=json", {
-            method: "pwg.categories.getList",
-			recursive: true,
-            fullname: true
-        }, function(data) {
-            jQuery.each(
-            data.result.categories, function(i, category) {
-                var selected = null;
-                if (category.id == selectedValue) {
-                    selected = "selected";
-                }
-                jQuery("<option/>")
-					.attr("value", category.id)
-					.attr("selected", selected)
-					.attr("data-url",category.url)
-					.text(category.name)
-					.appendTo("#" + selectId);
-            });
-        });
-    }
-
-    jQuery(".addAlbumOpen").colorbox({
+    $(".addAlbumOpen").colorbox({
         inline: true,
         href: "#addAlbumForm",
         onComplete: function() {
-            jQuery("input[name=category_name]").focus();
+            $("input[name=category_name]").focus();
         }
     });
 
-    jQuery("#addAlbumForm form").submit(function() {
-        jQuery("#categoryNameError").text("");
+    $("#addAlbumForm form").submit(function() {
+        $("#categoryNameError").text("");
 
-        jQuery.ajax({
+        $.ajax({
             url: "ws.php?format=json&method=pwg.categories.add",
             data: {
-                parent: jQuery("select[name=category_parent] option:selected").val(),
-                name: jQuery("input[name=category_name]").val()
+                parent: $("select[name=category_parent] option:selected").val(),
+                name: $("input[name=category_name]").val()
             },
             beforeSend: function() {
-                jQuery("#albumCreationLoading").show();
+                $("#albumCreationLoading").show();
             },
             success: function(html) {
-                jQuery("#albumCreationLoading").hide();
+                $("#albumCreationLoading").hide();
 
-                var newAlbum = jQuery.parseJSON(html).result.id;
-                jQuery(".addAlbumOpen").colorbox.close();
+                var newAlbum = $.parseJSON(html).result.id;
+                $(".addAlbumOpen").colorbox.close();
 				
 				/* Album selection refresh */
-                jQuery("#albumSelect").find("option").remove();
+                $("#albumSelect").find("option").remove();
                 fillCategoryListbox("albumSelect", newAlbum);
 
                 /* Album creation form refresh, in case the user wants to create another album */
-                jQuery("#category_parent").find("option").remove();
-                jQuery("<option/>").attr("value", 0).text("------------").appendTo("#category_parent");
+                $("#category_parent").find("option").remove();
+                $("<option/>").attr("value", 0).text("------------").appendTo("#category_parent");
                 fillCategoryListbox("category_parent", newAlbum);
-                jQuery("#addAlbumForm form input[name=category_name]").val('');
-                jQuery("#albumSelection").show();
+                $("#addAlbumForm form input[name=category_name]").val('');
+                $("#albumSelection").show();
 
                 return true;
             },
             error: function(XMLHttpRequest, textStatus, errorThrows) {
-                jQuery("#albumCreationLoading").hide();
-                jQuery("#categoryNameError").text(errorThrows).css("color", "red");
+                $("#albumCreationLoading").hide();
+                $("#categoryNameError").text(errorThrows).css("color", "red");
             }
         });
 
@@ -127,10 +138,10 @@ function supprFromID(params) {
     data: { method: 'pwg.session.getStatus' },
     success: function(data) {
       try { // Le parseJSON peut échouer
-        if (jQuery.parseJSON(data).stat == "fail") {
-          errorNotif('Suppression ' + params.image, jQuery.parseJSON(data).message);
+        if ($.parseJSON(data).stat == "fail") {
+          errorNotif('Suppression ' + params.image, $.parseJSON(data).message);
         } else {
-          var token = jQuery.parseJSON(data).result.pwg_token;
+          var token = $.parseJSON(data).result.pwg_token;
           $.ajax({
             url: 'ws.php?format=json',
             type: "POST",
@@ -141,8 +152,8 @@ function supprFromID(params) {
             },
             success: function(answer) {
               try { // Le parseJSON peut échouer
-                if (jQuery.parseJSON(answer).stat == "fail") {
-                  errorNotif('Suppression ' + params.image, jQuery.parseJSON(answer).message);
+                if ($.parseJSON(answer).stat == "fail") {
+                  errorNotif('Suppression ' + params.image, $.parseJSON(answer).message);
                 } else {
                   infoNotif(params.image, 'Fichier supprimé');
                   params.success();
@@ -179,8 +190,8 @@ function supprFromPath(params) {
     },
     success: function(data) {
       try { // Le parseJSON peut échouer
-        if (jQuery.parseJSON(data).stat == "fail") {
-          var message = jQuery.parseJSON(data).message;
+        if ($.parseJSON(data).stat == "fail") {
+          var message = $.parseJSON(data).message;
           if ('errors' in message) { // Le message contient un attribut errors
             for (var err in message.errors) {
               errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
@@ -315,7 +326,7 @@ function postSending(cell,success,image_id,url){
 		$("#status.start").hide();             
 		$("#status.end").empty()
 			.html("Images envoyées: " + $("#browser").contents().find('td.site.error').length + " erreur(s) parmi les " +
-				nbTotal + ' photos. <a href="index.php?/category/' + category_id + '" target="_blank">Afficher l\'album</a>');
+				nbTotal + ' photos. <a href="' + $('#albumSelect select[value='+category_id+']').data('url') + '" target="_blank">Afficher l\'album</a>');
 		$("#status.end").show();             
 		updateMissingNb(); // Inutile si on a changé de dossier mais n'est pas très lourd
 	}
@@ -346,20 +357,20 @@ $("input#launch").click(function() {
               level: $("select[name=level] option:selected").val(),
 			},
             
-      beforeSend: jQuery.proxy(function() {
+      beforeSend: $.proxy(function() {
         $(this).removeClass("missing")
                .addClass("sending").attr('title','En cours d\'envoi');
       },$(this)),
       
-		success: jQuery.proxy(function(data) {  
+		success: $.proxy(function(data) {  
 			try { // Le parseJSON peut échouer
-				var answer = jQuery.parseJSON(data);    
+				var answer = $.parseJSON(data);    
 				if (answer.stat == "ok") {// Si la requête n'a pas échoué
 					var nbDerivatives = answer.result.derivatives.length;
 					if (nbDerivatives > 0) {
 						$.ajaxq("fichiers",{
 							url: answer.result.derivatives[0] + "&ajaxload=true",
-							success: jQuery.proxy(postSending,$(this),$(this),true,answer.result.image_id,answer.result.url) //Les premiers seront les derniers
+							success: $.proxy(postSending,$(this),$(this),true,answer.result.image_id,answer.result.url) //Les premiers seront les derniers
 						},true);
 						for (var i=1; i < nbDerivatives; i++) {
 							$.ajaxq("fichiers",{url: answer.result.derivatives[i] + "&ajaxload=true"},true);

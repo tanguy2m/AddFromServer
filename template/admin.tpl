@@ -38,13 +38,9 @@
   <p><input type="button" id="launch" value="Ajouter ce dossier au site"></p>
   
   <div>
-	<span id="albumSelection"{if count($category_options) == 0} style="display:none"{/if}>
+	<span id="albumSelection">
 	  Choix de l'album: 
-	  <select id="albumSelect" name="category">
-		{foreach $category_options as $option}
-			<option value="{$option@key}" data-url="{$category_urls[$option@key]}">{$option}</option>
-		{/foreach}
-	  </select>
+	  <select id="albumSelect" name="category"></select>
 	  <br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
   </div>
   

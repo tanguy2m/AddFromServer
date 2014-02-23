@@ -187,6 +187,22 @@ function ws_images_existFromPath($params, &$service) {
             $file_names[$file_name] = array("id" => $result[$md5]);
 			
 			if(!is_null($result[$md5])) {
+			
+				// Récupération de l'url de l'image (si possible dans l'album)
+				$infos = $service -> invoke("pwg.images.getInfo", array('image_id' => $result[$md5]));
+				if ( strtolower( @get_class($infos) )!= 'pwgerror') {
+					if(count($infos["categories"]->_content) == 1){ // Image liée à une seule catégorie
+						$file_names[$file_name]["url"] = $infos["categories"]->_content[0]["page_url"];
+					} else { // Image liée à plusieurs catégories
+						$file_names[$file_name]["url"] = $infos["page_url"];
+					}
+				} else { // Notamment si l'image n'est liée à aucune catégorie
+					include_once(PHPWG_ROOT_PATH."include/functions_html.inc.php");
+					set_status_header(200); // Le return PwgError modifie le header
+					$file_names[$file_name]["url"] = '';
+				}
+				
+				// Récupération du chemin + vérification doublons
 				$query = '
 					SELECT
 					path

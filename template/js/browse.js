@@ -124,7 +124,7 @@ $(function() {
                         .removeAttr("title")
                         .attr("title","Image en double");
                     } else {
-						addPwgLink($td_site,resultat.id,'./../../../picture.php?/' + resultat.id);
+						addPwgLink($td_site,resultat.id,resultat.url);
                     }
                 }
                 else {

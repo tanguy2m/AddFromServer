@@ -3,7 +3,7 @@
 // This plugin is dual-licensed under the GNU General Public License and the MIT License and
 // is copyright 2008 A Beautiful Site, LLC (Cory S.N. LaViska - http://abeautifulsite.net/)
 $.extend($.fn, {
-	fileTree: function(o, h) {
+	fileTree: function(o) {
 		// Defaults
 		if( !o ) var o = {};
 		if( o.root == undefined ) o.root = '';
@@ -15,56 +15,67 @@ $.extend($.fn, {
 		if( o.collapseEasing == undefined ) o.collapseEasing = null;
 		if( o.multiFolder == undefined ) o.multiFolder = false;
 		if( o.loadMessage == undefined ) o.loadMessage = 'Loading...';
+		o.fileClick = o.fileClick || function(path,file){ alert(path+file); };
+		o.treeCreated = o.treeCreated || function(){};
+		
+		function showTree(c, t) {
+			$(c).addClass('wait');
+			$(".jqueryFileTree.start").remove();
+			$.post(o.script, { dir: t }, function(data) {
+				$(c).find('.start').html('');
+				$ul = $('<ul class="jqueryFileTree" style="display: none;"></ul>');
+				
+				// Création des dossiers
+				$.each( data.dirs, function( key, value ) {
+					$dir = $('<li class="directory collapsed"></li>').attr("id",data.path + value + "/")
+						.append('<div class="dirheader">'+value+'<span class="status"></span></div>')
+						.appendTo($ul);
+				});
+				
+				// Création des fichiers
+				var re = /(?:\.([^./]+))?$/;
+				$.each( data.files, function( key, value ) {
+					$li = $('<li class="file"></li>').attr("data-name",value.name)
+						.addClass('ext_'+re.exec(value.name)[1])
+						.append(value.name)
+						.bind('click', function() {
+							o.fileClick($(this).parent().parent().attr('id'),$(this).attr('data-name'));
+						});
+					if(value.process) $li.addClass('pending');
+					$li.appendTo($ul);
+				});		
+				
+				$(c).removeClass('wait').append($ul);
+				if( o.root == t )
+					$(c).find('UL:hidden').show();
+				else
+					$(c).find('UL:hidden').slideDown({ duration: o.expandSpeed, easing: o.expandEasing });
+				bindTree(c);
+				o.treeCreated($(c),!$(c).hasClass('directory'));
+			},"json");
+		}
+		
+		function bindTree(t) {
+			$(t).find('li.directory .dirheader').bind(o.folderEvent, function() {
+				$dir = $(this).parent();
+				if( $dir.hasClass('collapsed') ) {
+					// Expand
+					if( !o.multiFolder ) {
+						$dir.parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
+						$dir.parent().find('LI.directory').removeClass('expanded').addClass('collapsed');
+					}
+					$dir.find('UL').remove(); // cleanup
+					showTree( $dir, $dir.attr('id') );
+					$dir.removeClass('collapsed').addClass('expanded');
+				} else {
+					// Collapse
+					$dir.find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
+					$dir.removeClass('expanded').addClass('collapsed');
+				}
+			});
+		}
 		
 		$(this).each( function() {
-			
-			function showTree(c, t) {
-				$(c).addClass('wait');
-				$(".jqueryFileTree.start").remove();
-				$.post(o.script, { dir: t }, function(data) {
-					$(c).find('.start').html('');
-					$ul = $('<ul class="jqueryFileTree" style="display: none;"></ul>');
-					$.each( data.dirs, function( key, value ) {
-						$ul.append('<li class="directory collapsed"><a href="#" rel="'+data.path+value+'/">'+value+'</a></li>');
-					});
-					$.each( data.files, function( key, value ) {
-						$('<li class="file ext_'+value.ext+'"><a href="#" rel="'+data.path+value.name+'">'+value.name+'</a></li>')
-							.appendTo($ul);
-					});					
-					$(c).removeClass('wait').append($ul);
-					if( o.root == t )
-						$(c).find('UL:hidden').show();
-					else
-						$(c).find('UL:hidden').slideDown({ duration: o.expandSpeed, easing: o.expandEasing });
-					bindTree(c);
-				},"json");
-			}
-			
-			function bindTree(t) {
-				$(t).find('LI A').bind(o.folderEvent, function() {
-					if( $(this).parent().hasClass('directory') ) {
-						if( $(this).parent().hasClass('collapsed') ) {
-							// Expand
-							if( !o.multiFolder ) {
-								$(this).parent().parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
-								$(this).parent().parent().find('LI.directory').removeClass('expanded').addClass('collapsed');
-							}
-							$(this).parent().find('UL').remove(); // cleanup
-							showTree( $(this).parent(), $(this).attr('rel') );
-							$(this).parent().removeClass('collapsed').addClass('expanded');
-						} else {
-							// Collapse
-							$(this).parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
-							$(this).parent().removeClass('expanded').addClass('collapsed');
-						}
-					} else {
-						h($(this).attr('rel'));
-					}
-					return false;
-				});
-				// Prevent A from triggering the # on non-click events
-				if( o.folderEvent.toLowerCase != 'click' ) $(t).find('LI A').bind('click', function() { return false; });
-			}
 			// Loading message
 			$(this).html('<ul class="jqueryFileTree start"><li class="wait">' + o.loadMessage + '<li></ul>');
 			// Get the initial file list
@@ -291,6 +302,50 @@ function supprFromPath(params) {
 //      Mise à jour du panel 'fichier'     //
 // --------------------------------------- //
 
+function processImages(args){
+    
+    args.beforeSend = args.beforeSend || function(){};
+    args.complete = args.complete || function(){};
+    args.noimage = args.noimage || function(){};
+    
+    var maxNumber = 20; // Nombre max de fichiers par requête    
+
+    var i= 0;
+    var slice = args.names.slice(0,maxNumber);
+    while (slice.length > 0) { // Si il y a au moins une photo, requête     
+
+        $.ajaxq("files", {
+            url: 'ws.php?format=json', // Remontée jusqu'à la racine de Piwigo
+            data: {
+                method: args.service,
+                prefix_path: args.prefix,
+                images_paths: slice
+            },
+            beforeSend: args.beforeSend,
+            success: function(data) {
+                try { // Le parseJSON peut échouer
+                    if ($.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
+                        args.success($.parseJSON(data).result);
+                    }
+                    else {
+                        errorNotif("Erreur "+$.parseJSON(data).err, $.parseJSON(data).message);
+                    }
+                }
+                catch (error) {
+                    errorNotif("Erreur",error);
+                }
+            },
+            complete: args.complete
+        });
+        
+        slice = args.names.slice((i+1)*maxNumber,(i+2)*maxNumber);
+        i++;
+    }
+    
+    if(i===0) // Cas des dossiers
+        args.noimage();
+}
+
 function removeThumb(){
 	$("#thumb").hide();
 }
@@ -320,10 +375,51 @@ function positionThumb(e){
 }
 
 $(function() {
+	// Récupération de la liste des fichiers
 	$('#navigateur').fileTree({
-		script: 'admin.php?page=plugin-AddFromServer'
-	}, function(file) {
-		alert(file);
+		script: 'admin.php?page=plugin-AddFromServer',
+		treeCreated: function($dossier,isRoot){		
+			// Récupération de l'état dans piwigo
+			path = isRoot ? '' : $dossier.attr('id');
+			processImages({
+				prefix: path,
+				names: $.map($dossier.find('li.pending'), function(dom){
+					return $(dom).text();
+				}),
+				service: "pwg.images.existFromPath",
+				beforeSend: function(){
+					console.log("Before send du dossier: ");
+					console.log($dossier);
+					$dossier.addClass('wait');
+				},
+				success: function(answer){
+					$.each(answer, function(file_name, resultat) {
+						var $fichier = $dossier.find("[data-name='"+file_name+"']");
+						$fichier.removeClass("pending");
+						if (resultat.id > 0) {
+							$fichier.unbind("click");
+							if (resultat.double == "yes") {
+								$fichier.addClass('double').attr("title","Image en double");
+							} else {
+								//addPwgLink($li,resultat.id,resultat.url);
+								$fichier.addClass("present").bind("click",function(){
+									window.open(resultat.url);
+								});
+							}
+						} else {
+							$fichier.addClass("missing").attr('title','Manque dans Piwigo');
+						}
+					});
+					updateDirStatus($dossier,isRoot);
+				},
+				complete: function(){
+					console.log("After send du dossier: ");
+					console.log($dossier);
+					$dossier.removeClass('wait');
+				},      
+				//noimage: razMissingNb
+			});
+		}
 	});
 });
 
@@ -331,11 +427,11 @@ $(function() {
 //      Mise à jour du panel 'dossier'     //
 // --------------------------------------- //
 
-function startScan() {
+function startScan() { //OBSO
 	$("span#loadingMissing").show();
 }
 
-function stopScan() {
+function stopScan() { //OBSO
 	$("span#loadingMissing").hide();
 }
 
@@ -356,6 +452,26 @@ function updateMissingNb() {
 	    razMissingNb();
 	  }
     }
+}
+
+function updateDirStatus($dossier,isRoot) {
+	if(!isRoot){
+		$missing = $dossier.find("span.status:first");
+		var number = $dossier.find('li.file.missing').length + $dossier.find('li.file.error').length;
+		$missing.attr("id",number); //TODO: utilité ?
+		if (number > 1) {
+		  $missing.html(" - " + number + " photos absentes du site");
+		  //$("fieldset#album").show();
+		} else if (number == 1) {
+		  $missing.html(" - " + number + " photo absente du site");
+		  //$("fieldset#album").show();
+		} else { // No missing or error
+		  if ($dossier.find('li.file.present').length > 0) {
+			$missing.html(" - Toutes les photos sont déjà sur le site");
+			//$("fieldset#album").hide();
+		  }
+		}
+	}
 }
 
 function razMissingNb() {

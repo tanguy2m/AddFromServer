@@ -21,13 +21,15 @@ if(isset($_POST['dir'])){
 			$files = array();
 			foreach( $items as $item ) {
 				if( file_exists($dir . $item) && $item != '.' && $item != '..' ){					
-					if( is_dir($dir . $item) ) // Folder
+					if( is_dir($dir . $item) ) { // Folder
 						$dirs[] = $item;
-					else // File
+					} else { // File
+						$ext = preg_replace('/^.*\./', '', $item);
 						$files[] = array(
 							"name" => $item,
-							"ext" => preg_replace('/^.*\./', '', $item)
+							"process" => ( in_array($ext, $conf['picture_ext']) ? true : false )
 						);
+					}
 				}
 			}
 			echo json_encode(array(

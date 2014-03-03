@@ -12,7 +12,21 @@
 </script>
 {/literal}{/html_head}
 
-{include file="../../../`$plugin_folder`template/popups.inc.tpl"}
+{* Categorie creation pop-up *}
+<div style="display:none">
+  <div id="addAlbumForm" style="text-align:left;padding:1em;">
+    <form>
+      Album parent<br>
+      <select class="albumSelect" name="category_parent">
+        <option value="0">------------</option>
+        {html_options options=$category_options selected=$category_options_selected}
+      </select>
+
+      <br><br>Nom de l'album<br><input name="category_name" type="text"> <span id="categoryNameError"></span>
+      <br><br><br><input type="submit" value="Créer"> <span id="albumCreationLoading" style="display:none"><img src="themes/default/images/ajax-loader-small.gif"></span>
+    </form>
+  </div>
+</div>
 
 <div class="titrePage">
   <h2>
@@ -34,23 +48,21 @@
 
 <fieldset id="album">
 	<legend>Configuration de l'album</legend>
-	
-  <p><input type="button" id="launch" value="Ajouter ce dossier au site"></p>
-  
-  <div>
-	<span id="albumSelection">
-	  Choix de l'album: 
-	  <select id="albumSelect" name="category"></select>
-	  <br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
-  </div>
-  
-  <div id="level">
-	Qui peut voir ces photos?
-	  <select name="level" size="1">
-		{html_options options=$level_options selected=$level_options_selected}
-	  </select>
-  </div>
-  
+	<div class="addToAlbum">
+		<p><input type="button" class="launch" value="Ajouter ce dossier au site"></p>
+
+		<div>
+			<span>Choix de l'album:<select class="albumSelect" name="category"></select>
+			<br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
+		</div>
+
+		<div>
+			Qui peut voir ces photos?
+			<select name="level" size="1">
+				{html_options options=$level_options selected=$level_options_selected}
+			</select>
+		</div>
+	</div>
 </fieldset>
 
 <fieldset id="origine" class="reference">

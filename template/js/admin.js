@@ -142,7 +142,7 @@ function fillCategoryListbox(selector, selectedValue) {
 						.attr("selected", selected)
 						.attr("data-url",category.url)
 						.text(category.name)
-						.appendTo("#" + selector);
+						.appendTo(selector);
 				}
 			);
 		}
@@ -150,12 +150,13 @@ function fillCategoryListbox(selector, selectedValue) {
 }
 
 $(function() {
-	fillCategoryListbox("albumSelect",-1);
+	fillCategoryListbox(".albumSelect",-1);
 });
 
 ///////////////////////////////////////////////////
 //    Gestion de la popup "Ajout de catégorie"   //
 ///////////////////////////////////////////////////
+
 $(document).ready(function() {
 
     $(".addAlbumOpen").colorbox({
@@ -185,15 +186,10 @@ $(document).ready(function() {
                 $(".addAlbumOpen").colorbox.close();
 				
 				/* Album selection refresh */
-                $("#albumSelect").find("option").remove();
-                fillCategoryListbox("albumSelect", newAlbum);
+                $(".albumSelect").find("option").not('[value=0]').remove();
+                fillCategoryListbox(".albumSelect", newAlbum);
 
-                /* Album creation form refresh, in case the user wants to create another album */
-                $("#category_parent").find("option").remove();
-                $("<option/>").attr("value", 0).text("------------").appendTo("#category_parent");
-                fillCategoryListbox("category_parent", newAlbum);
                 $("#addAlbumForm form input[name=category_name]").val('');
-                $("#albumSelection").show();
 
                 return true;
             },
@@ -307,11 +303,10 @@ function processImages(args){
     args.beforeSend = args.beforeSend || function(){};
     args.complete = args.complete || function(){};
     args.noimage = args.noimage || function(){};
-    
-    var maxNumber = 20; // Nombre max de fichiers par requête    
+    args.maxNumber = args.maxNumber || 20; // Nombre max de fichiers par requête    
 
     var i= 0;
-    var slice = args.names.slice(0,maxNumber);
+    var slice = args.names.slice(0,args.maxNumber);
     while (slice.length > 0) { // Si il y a au moins une photo, requête     
 
         $.ajaxq("files", {
@@ -338,7 +333,7 @@ function processImages(args){
             complete: args.complete
         });
         
-        slice = args.names.slice((i+1)*maxNumber,(i+2)*maxNumber);
+        slice = args.names.slice((i+1)*args.maxNumber,(i+2)*args.maxNumber);
         i++;
     }
     
@@ -388,8 +383,8 @@ $(function() {
 				}),
 				service: "pwg.images.existFromPath",
 				beforeSend: function(){
-					console.log("Before send du dossier: ");
-					console.log($dossier);
+					console.log("Before send du dossier: "); //OBSO
+					console.log($dossier); //OBSO
 					$dossier.addClass('wait');
 				},
 				success: function(answer){
@@ -435,7 +430,7 @@ function stopScan() { //OBSO
 	$("span#loadingMissing").hide();
 }
 
-function updateMissingNb() {
+function updateMissingNb() { //OBSO
     var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
     $("span.missing").attr("id",number);
     if (number > 1) {
@@ -460,18 +455,22 @@ function updateDirStatus($dossier,isRoot) {
 		var number = $dossier.find('li.file.missing').length + $dossier.find('li.file.error').length;
 		$missing.attr("id",number); //TODO: utilité ?
 		if (number > 1) {
-		  $missing.html(" - " + number + " photos absentes du site");
-		  //$("fieldset#album").show();
+			$missing.html(" - " + number + " photos absentes du site");
+			displayAddAlbum($missing);
 		} else if (number == 1) {
-		  $missing.html(" - " + number + " photo absente du site");
-		  //$("fieldset#album").show();
+			$missing.html(" - " + number + " photo absente du site");
+			//$("fieldset#album").show();
 		} else { // No missing or error
-		  if ($dossier.find('li.file.present').length > 0) {
-			$missing.html(" - Toutes les photos sont déjà sur le site");
-			//$("fieldset#album").hide();
-		  }
+			if ($dossier.find('li.file.present').length > 0) {
+				$missing.html(" - Toutes les photos sont déjà sur le site");
+				//$("fieldset#album").hide();
+			}
 		}
 	}
+}
+
+function displayAddAlbum($missing){
+	$missing.parent().after($('.addToAlbum:first').clone(true));
 }
 
 function razMissingNb() {
@@ -531,7 +530,7 @@ function postSending(cell,success,image_id,url){
 }
 
 $(function() {
-$("input#launch").click(function() {
+$("input.launch").click(function() {
     
   var nbTotal = $("span.missing").attr("id");
   

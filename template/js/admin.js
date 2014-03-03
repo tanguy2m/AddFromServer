@@ -299,46 +299,49 @@ function supprFromPath(params) {
 // --------------------------------------- //
 
 function processImages(args){
-    
-    args.beforeSend = args.beforeSend || function(){};
-    args.complete = args.complete || function(){};
-    args.noimage = args.noimage || function(){};
-    args.maxNumber = args.maxNumber || 20; // Nombre max de fichiers par requête    
 
-    var i= 0;
-    var slice = args.names.slice(0,args.maxNumber);
-    while (slice.length > 0) { // Si il y a au moins une photo, requête     
-
-        $.ajaxq("files", {
-            url: 'ws.php?format=json', // Remontée jusqu'à la racine de Piwigo
+	args.beforeSend = args.beforeSend || function(){};
+	args.complete = args.complete || function(){};
+	args.noimage = args.noimage || function(){};
+	args.maxNumber = args.maxNumber || 20; // Nombre max de fichiers par requête    
+	
+	if (args.names.length == 0) { // Cas des dossiers
+		args.noimage();
+		return;
+	}
+	
+	var slices = new Array();
+	var j = 0;	
+	do {
+		slice = args.names.slice(j*args.maxNumber,(j+1)*args.maxNumber);
+		if (slice.length > 0) slices.push(slice); // Si args.names.length est un multiple de maxNumber
+		j++;
+	} while (slice.length == args.maxNumber);
+	
+	for (var i = 0; i < slices.length; i++) {
+		var options = {
+            url: 'ws.php?format=json',
             data: {
                 method: args.service,
                 prefix_path: args.prefix,
-                images_paths: slice
+                images_paths: slices[i]
             },
-            beforeSend: args.beforeSend,
             success: function(data) {
                 try { // Le parseJSON peut échouer
-                    if ($.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
+                    if ($.parseJSON(data).stat == "ok") // Si la requête n'a pas échoué
                         args.success($.parseJSON(data).result);
-                    }
-                    else {
+                    else
                         errorNotif("Erreur "+$.parseJSON(data).err, $.parseJSON(data).message);
-                    }
                 }
                 catch (error) {
                     errorNotif("Erreur",error);
                 }
-            },
-            complete: args.complete
-        });
-        
-        slice = args.names.slice((i+1)*args.maxNumber,(i+2)*args.maxNumber);
-        i++;
+            }
+        };
+		if (i == 0) options.beforeSend = args.beforeSend;
+		if (i == slices.length-1) options.complete = args.complete;	
+        $.ajaxq("files", options);
     }
-    
-    if(i===0) // Cas des dossiers
-        args.noimage();
 }
 
 function removeThumb(){
@@ -408,8 +411,8 @@ $(function() {
 					updateDirStatus($dossier,isRoot);
 				},
 				complete: function(){
-					console.log("After send du dossier: ");
-					console.log($dossier);
+					console.log("After send du dossier: "); //OBSO
+					console.log($dossier); //OBSO
 					$dossier.removeClass('wait');
 				},      
 				//noimage: razMissingNb

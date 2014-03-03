@@ -17,6 +17,7 @@ $.extend($.fn, {
 		if( o.loadMessage == undefined ) o.loadMessage = 'Loading...';
 		o.fileClick = o.fileClick || function(path,file){ alert(path+file); };
 		o.treeCreated = o.treeCreated || function(){};
+		o.folderCollapsed = o.folderCollapsed || function(){};
 		
 		function showTree(c, t) {
 			$(c).addClass('wait');
@@ -58,19 +59,20 @@ $.extend($.fn, {
 		function bindTree(t) {
 			$(t).find('li.directory .dirheader').bind(o.folderEvent, function() {
 				$dir = $(this).parent();
-				if( $dir.hasClass('collapsed') ) {
-					// Expand
+				if( $dir.hasClass('collapsed') ) { // Expand
 					if( !o.multiFolder ) {
 						$dir.parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
-						$dir.parent().find('LI.directory').removeClass('expanded').addClass('collapsed');
+						$folders = $dir.parent().find('LI.directory.expanded');
+						$folders.removeClass('expanded').addClass('collapsed');
+						o.folderCollapsed($folders);
 					}
 					$dir.find('UL').remove(); // cleanup
 					showTree( $dir, $dir.attr('id') );
 					$dir.removeClass('collapsed').addClass('expanded');
-				} else {
-					// Collapse
+				} else { // Collapse
 					$dir.find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
 					$dir.removeClass('expanded').addClass('collapsed');
+					o.folderCollapsed($dir);
 				}
 			});
 		}
@@ -376,6 +378,9 @@ $(function() {
 	// Récupération de la liste des fichiers
 	$('#navigateur').fileTree({
 		script: 'admin.php?page=plugin-AddFromServer',
+		folderCollapsed: function($dossier){
+			$dossier.find('.addToAlbum').hide();
+		},
 		treeCreated: function($dossier,isRoot){		
 			// Récupération de l'état dans piwigo
 			path = isRoot ? '' : $dossier.attr('id');
@@ -386,8 +391,6 @@ $(function() {
 				}),
 				service: "pwg.images.existFromPath",
 				beforeSend: function(){
-					console.log("Before send du dossier: "); //OBSO
-					console.log($dossier); //OBSO
 					$dossier.addClass('wait');
 				},
 				success: function(answer){
@@ -408,11 +411,9 @@ $(function() {
 							$fichier.addClass("missing").attr('title','Manque dans Piwigo');
 						}
 					});
-					updateDirStatus($dossier,isRoot);
 				},
 				complete: function(){
-					console.log("After send du dossier: "); //OBSO
-					console.log($dossier); //OBSO
+					updateDirStatus($dossier,isRoot);
 					$dossier.removeClass('wait');
 				},      
 				//noimage: razMissingNb
@@ -457,23 +458,23 @@ function updateDirStatus($dossier,isRoot) {
 		$missing = $dossier.find("span.status:first");
 		var number = $dossier.find('li.file.missing').length + $dossier.find('li.file.error').length;
 		$missing.attr("id",number); //TODO: utilité ?
+		
+		if (number ==0) {
+			if ($dossier.find('li.file.present').length > 0)
+				$missing.html(" - Toutes les photos sont déjà sur le site");
+			return;
+		}		
 		if (number > 1) {
 			$missing.html(" - " + number + " photos absentes du site");
-			displayAddAlbum($missing);
 		} else if (number == 1) {
 			$missing.html(" - " + number + " photo absente du site");
-			//$("fieldset#album").show();
-		} else { // No missing or error
-			if ($dossier.find('li.file.present').length > 0) {
-				$missing.html(" - Toutes les photos sont déjà sur le site");
-				//$("fieldset#album").hide();
-			}
 		}
+		
+		if($dossier.chidren('.addToAlbum').length == 1)
+			$dossier.children('.addToAlbum').show();
+		else
+			$dossier.children('.dirheader').after($('.addToAlbum:first').clone(true));
 	}
-}
-
-function displayAddAlbum($missing){
-	$missing.parent().after($('.addToAlbum:first').clone(true));
 }
 
 function razMissingNb() {

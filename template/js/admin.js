@@ -11,8 +11,8 @@ $.extend($.fn, {
 		if( o.folderEvent == undefined ) o.folderEvent = 'click';
 		if( o.expandSpeed == undefined ) o.expandSpeed= 500;
 		if( o.collapseSpeed == undefined ) o.collapseSpeed= 250;
-		if( o.expandEasing == undefined ) o.expandEasing = null;
-		if( o.collapseEasing == undefined ) o.collapseEasing = null;
+		if( o.expandEasing == undefined ) o.expandEasing = null; //TODO: à supprimer
+		if( o.collapseEasing == undefined ) o.collapseEasing = null; //TODO: à supprimer
 		if( o.multiFolder == undefined ) o.multiFolder = false;
 		if( o.loadMessage == undefined ) o.loadMessage = 'Loading...';
 		o.fileClick = o.fileClick || function(path,file){ alert(path+file); };
@@ -29,7 +29,7 @@ $.extend($.fn, {
 				// Création des dossiers
 				$.each( data.dirs, function( key, value ) {
 					$dir = $('<li class="directory collapsed"></li>').attr("id",data.path + value + "/")
-						.append('<div class="dirheader">'+value+'<span class="status"></span></div>')
+						.append('<div class="dirheader">'+value+'<span class="status"></span></div>') //TODO: span.status pas vraiment lié au filetree
 						.appendTo($ul);
 				});
 				
@@ -85,21 +85,6 @@ $.extend($.fn, {
 		});
 	}
 });
-
-///////////////////////////
-//    Iframe loading     //
-///////////////////////////
-
-function showBrowser(size) {
-    stopScan();
-    $("#browser").height(window.frames.browser.document.body.offsetHeight + 30); // Dimensionement de l'Iframe en fonction du contenu
-    $("#waitBrowser").css('background-color', $("#content").css('background-color')); // Copie de la couleur de fond du thème
-    $("#waitBrowser").hide();
-}
-
-function hideBrowser() { // Le dossier change dans browse.php
-    $("#waitBrowser").show();
-}
 
 ///////////////////////////
 //     Notifications     //
@@ -211,7 +196,7 @@ $(document).ready(function() {
 // ---------------------------//
 
 // Suppression d'une photo à partir de son ID
-function supprFromID(params) {
+function supprFromID(params) { // Obso ?
     
   params.image = params.image || '';
   //params.id mandatory
@@ -297,54 +282,8 @@ function supprFromPath(params) {
 }
 
 // --------------------------------------- //
-//      Mise à jour du panel 'fichier'     //
+//                Miniatures               //
 // --------------------------------------- //
-
-function processImages(args){
-
-	args.beforeSend = args.beforeSend || function(){};
-	args.complete = args.complete || function(){};
-	args.noimage = args.noimage || function(){};
-	args.maxNumber = args.maxNumber || 20; // Nombre max de fichiers par requête    
-	
-	if (args.names.length == 0) { // Cas des dossiers
-		args.noimage();
-		return;
-	}
-	
-	var slices = new Array();
-	var j = 0;	
-	do {
-		slice = args.names.slice(j*args.maxNumber,(j+1)*args.maxNumber);
-		if (slice.length > 0) slices.push(slice); // Si args.names.length est un multiple de maxNumber
-		j++;
-	} while (slice.length == args.maxNumber);
-	
-	for (var i = 0; i < slices.length; i++) {
-		var options = {
-            url: 'ws.php?format=json',
-            data: {
-                method: args.service,
-                prefix_path: args.prefix,
-                images_paths: slices[i]
-            },
-            success: function(data) {
-                try { // Le parseJSON peut échouer
-                    if ($.parseJSON(data).stat == "ok") // Si la requête n'a pas échoué
-                        args.success($.parseJSON(data).result);
-                    else
-                        errorNotif("Erreur "+$.parseJSON(data).err, $.parseJSON(data).message);
-                }
-                catch (error) {
-                    errorNotif("Erreur",error);
-                }
-            }
-        };
-		if (i == 0) options.beforeSend = args.beforeSend;
-		if (i == slices.length-1) options.complete = args.complete;	
-        $.ajaxq("files", options);
-    }
-}
 
 function removeThumb(){
 	$("#thumb").hide();
@@ -374,67 +313,244 @@ function positionThumb(e){
 	}
 }
 
+// --------------------------------------- //
+//      Mise à jour du panel 'fichier'     //
+// --------------------------------------- //
+
+// Mandatory = args.directory, args.fileClass, args.service, args.prefix
+function processImages(options){
+
+	var args = $.extend({
+		noimage: $.noop, success: $.noop, error: $.noop, afterProcess: $.noop,
+		maxNumber: 20 // Nombre max de fichiers par requête
+	}, options);
+
+	var files = args.directory.children('ul').children('li.'+args.fileClass);	
+	if (files.length == 0) { // Cas des dossiers
+		args.noimage();
+		return;
+	}
+
+	var slices = new Array(), j = 0;
+	do {
+		slice = files.slice(j*args.maxNumber,(j+1)*args.maxNumber);
+		if (slice.length > 0) slices.push(slice); // Si files.length est un multiple de maxNumber
+		j++;
+	} while (slice.length == args.maxNumber);
+
+	for (var i = 0; i < slices.length; i++) {
+		var options = {
+            url: 'ws.php?format=json',
+            data: $.extend({
+					method: args.service,
+					prefix_path: args.prefix,
+					images_paths: $.map(slices[i], function(dom){ return $(dom).data('name'); })
+				}, args.data ),
+			beforeSend: $.proxy(function(){
+				$(this).removeClass(args.fileClass).addClass('wait');
+			},slices[i]),
+            success: $.proxy(function(data) {
+				$(this).removeClass('wait');
+                try { // Le parseJSON peut échouer
+                    if ($.parseJSON(data).stat == "ok") { // Si la requête n'a pas échoué
+						$.each($.parseJSON(data).result, function(file_name, resultat) {
+							var $fichier = args.directory.children('ul').children("li[data-name='"+file_name+"']");
+							args.success($fichier, resultat);
+						});
+                    } else {
+                        errorNotif("Erreur "+$.parseJSON(data).err, $.parseJSON(data).message);
+						args.error(this,$.parseJSON(data).message);
+					}
+                }
+                catch (error) {
+                    errorNotif("Erreur",error);
+					args.error(this,error);
+                }
+            },slices[i]),
+			error: $.proxy(function() {
+				$(this).removeClass('wait');
+				args.error(this,'Erreur HTML'); // TODO: peut mieux faire
+			},slices[i]),
+        };
+		if (i == 0)
+			options.beforeSend = $.proxy(function(){
+				args.directory.addClass('wait');
+				$(this).removeClass(args.fileClass).addClass('wait');
+			},slices[i]);
+		if (i == slices.length-1) options.complete = function(){ args.afterProcess(); args.directory.removeClass('wait'); };
+        $.ajaxq(args.service, options);
+    }
+}
+
+function addPwgLink($fichier,url){
+	$fichier
+		.unbind("click")
+		.addClass('present')
+		.removeAttr("title")
+		.bind("click",function(){
+			window.open(url);
+		});
+}
+
 $(function() {
+
 	// Récupération de la liste des fichiers
-	$('#navigateur').fileTree({
+	$('#navigateur').fileTree({ //TODO: la classe "pending" doit être un paramètre
 		script: 'admin.php?page=plugin-AddFromServer',
 		folderCollapsed: function($dossier){
-			$dossier.find('.addToAlbum').hide();
+			$dossier.children('.addToAlbum').hide();
 		},
 		treeCreated: function($dossier,isRoot){		
 			// Récupération de l'état dans piwigo
-			path = isRoot ? '' : $dossier.attr('id');
 			processImages({
-				prefix: path,
-				names: $.map($dossier.find('li.pending'), function(dom){
-					return $(dom).text();
-				}),
+				prefix: isRoot ? '' : $dossier.attr('id'),
+				directory: $dossier,
+				fileClass: 'pending',
 				service: "pwg.images.existFromPath",
-				beforeSend: function(){
-					$dossier.addClass('wait');
+				success: function($fichier,resultat){
+					if (resultat.id > 0) {
+						if (resultat.double == "yes")
+							$fichier.addClass('double').attr("title","Image en double");
+						else
+							addPwgLink($fichier,resultat.url);
+					} else {
+						$fichier.addClass("missing").attr('title','Manque dans Piwigo');
+					}
 				},
-				success: function(answer){
-					$.each(answer, function(file_name, resultat) {
-						var $fichier = $dossier.find("[data-name='"+file_name+"']");
-						$fichier.removeClass("pending");
-						if (resultat.id > 0) {
-							$fichier.unbind("click");
-							if (resultat.double == "yes") {
-								$fichier.addClass('double').attr("title","Image en double");
-							} else {
-								//addPwgLink($li,resultat.id,resultat.url);
-								$fichier.addClass("present").bind("click",function(){
-									window.open(resultat.url);
-								});
-							}
-						} else {
-							$fichier.addClass("missing").attr('title','Manque dans Piwigo');
+				afterProcess: function(){
+					if(!isRoot){
+						$missing = $dossier.children('.dirheader').children('.status');
+						var number = $dossier.children('ul').children('li.file.missing').length + $dossier.children('ul').children('li.file.error').length;
+						$missing.attr("id",number);
+						
+						if (number == 0) {
+							if ($dossier.children('ul').children('li.file.present').length > 0)
+								$missing.html(" - Toutes les photos sont déjà sur le site");
+							return;
+						}		
+						if (number > 1) {
+							$missing.html(" - " + number + " photos absentes du site");
+						} else if (number == 1) {
+							$missing.html(" - " + number + " photo absente du site");
 						}
-					});
-				},
-				complete: function(){
-					updateDirStatus($dossier,isRoot);
-					$dossier.removeClass('wait');
-				},      
-				//noimage: razMissingNb
+						
+						if($dossier.children('.addToAlbum').length == 0)
+							$dossier.children('.dirheader').after($('.addToAlbum:first').clone(true));
+						$dossier.children('.addToAlbum').show();
+					}
+				}
 			});
 		}
 	});
+
 });
 
 // --------------------------------------- //
-//      Mise à jour du panel 'dossier'     //
+//         Ajout des photos au site        //
 // --------------------------------------- //
 
-function startScan() { //OBSO
+function updateStatus($ata,nbFichiers){
+
+	var remaining = parseInt($ata.find('.nbRestant').html());
+	var nbTotal = $ata.find('.nbTotal').html();
+	
+	remaining -= nbFichiers;
+	if(remaining > 0) {
+		$ata.find('.nbRestant').html(remaining);
+		$ata.find('.progressbar').progressbar({ value: (1-remaining/nbTotal)*100 });
+	} else {
+		$ata.children('.start').hide();
+		$ata.find('.nbErrors').html($ata.parent().find('.error').length);
+		$ata.find('.end a').attr('href',$ata.find('.albumSelect option:selected').data('url')); //TODO: et si que des erreurs ?
+		$ata.children('.end').show();
+		//updateMissingNb(); // A faire pour mettre à jour le statut dossier //TODO
+	}
+}
+
+$(function() {
+$("input.launch").click(function() {
+
+	var $ata = $(this).parent().parent();
+	var $dossier = $ata.parent();
+	var $missing = $dossier.children('.dirheader').children('.status');
+	var nbTotal = $missing.attr("id"); //TODO: bof d'utiliser l'id pour ça
+
+	$ata.children('.before').hide();
+	$ata.find('.nbRestant').html(nbTotal);
+	$ata.find('.nbTotal').html(nbTotal);
+	$ata.children('.start').show();
+
+	$missing.html(" - Ajout des photos au site");
+
+	processImages({
+		prefix: $dossier.attr('id'), //TODO: et pour root ?
+		directory: $dossier,
+		fileClass: 'missing',
+		service: 'pwg.images.addFromServer',
+		maxNumber: 1,
+		data: {
+			category:  $ata.find("select[name=category] option:selected").val(),
+			level: $ata.find("select[name=level] option:selected").val()
+		},
+		success: function($file,resultat){
+			addPwgLink($file,resultat.url);
+			var nbDerivatives = resultat.derivatives.length;
+			if (nbDerivatives > 0) {
+				$.ajaxq("derivatives",{
+					url: resultat.derivatives[0] + "&ajaxload=true",
+					beforeSend: function(){ $file.addClass('wait'); }
+				});
+				for (var i=1; i < nbDerivatives - 1; i++) {
+					$.ajaxq("derivatives",{url: resultat.derivatives[i] + "&ajaxload=true"});
+				}
+				$.ajaxq("derivatives",{  //TODO: ko si une seule dérivative
+					url: resultat.derivatives[nbDerivatives - 1] + "&ajaxload=true",
+					complete: function(){ $file.removeClass('wait'); updateStatus($ata,1); }
+				});
+			} else {
+				updateStatus($ata,1);
+			}
+		},
+		error: function(files,message){
+			files.addClass("error").attr('title','Erreur lors du transfert');
+			updateStatus($ata,files.length);
+		}
+	});
+});
+});
+
+// ---------------------------------------- //
+// Empêcher la fermeture si upload en cours //
+// ---------------------------------------- //
+
+window.onbeforeunload = function() {
+    if ($("#browser").contents().find('td.site.sending').length > 0)
+        return 'Un ajout de photos est en cours, voulez-vous vraiment quitter la page?';
+}
+
+// ======================================= //
+//                   Obso                  //
+// ======================================= //
+
+// Reset du bas de la page si un autre dossier est affiché
+function reset() {
+    if( $('#status.end').is(':visible') ) { // L'upload est terminé
+        $("fieldset#progress").hide();
+        $("#status.end").hide();
+        $("#status.start").show();
+        $("fieldset#album").show();      
+    }
+}
+
+function startScan() {
 	$("span#loadingMissing").show();
 }
 
-function stopScan() { //OBSO
+function stopScan() {
 	$("span#loadingMissing").hide();
 }
 
-function updateMissingNb() { //OBSO
+function updateMissingNb() {
     var number = $("#browser").contents().find('td.site.missing').length + $("#browser").contents().find('td.site.error').length;
     $("span.missing").attr("id",number);
     if (number > 1) {
@@ -451,30 +567,6 @@ function updateMissingNb() { //OBSO
 	    razMissingNb();
 	  }
     }
-}
-
-function updateDirStatus($dossier,isRoot) {
-	if(!isRoot){
-		$missing = $dossier.find("span.status:first");
-		var number = $dossier.find('li.file.missing').length + $dossier.find('li.file.error').length;
-		$missing.attr("id",number); //TODO: utilité ?
-		
-		if (number ==0) {
-			if ($dossier.find('li.file.present').length > 0)
-				$missing.html(" - Toutes les photos sont déjà sur le site");
-			return;
-		}		
-		if (number > 1) {
-			$missing.html(" - " + number + " photos absentes du site");
-		} else if (number == 1) {
-			$missing.html(" - " + number + " photo absente du site");
-		}
-		
-		if($dossier.chidren('.addToAlbum').length == 1)
-			$dossier.children('.addToAlbum').show();
-		else
-			$dossier.children('.dirheader').after($('.addToAlbum:first').clone(true));
-	}
 }
 
 function razMissingNb() {
@@ -502,11 +594,7 @@ function updateChemin(path) {
 
 }
 
-// --------------------------------------- //
-//         Ajout des photos au site        //
-// --------------------------------------- //
-
-function postSending(cell,success,image_id,url){
+function postSendingo(cell,success,image_id,url){
 
 	cell.removeClass("sending");
 	if (success) {	
@@ -534,7 +622,7 @@ function postSending(cell,success,image_id,url){
 }
 
 $(function() {
-$("input.launch").click(function() {
+$("input#launch").click(function() {
     
   var nbTotal = $("span.missing").attr("id");
   
@@ -548,13 +636,13 @@ $("input.launch").click(function() {
   $("#browser").contents().find('td.site.missing').each(function (index) {
     
     var image_name = $(this).closest('tr').attr('id');
-    var category_id = $("select#albumSelect option:selected").val();
     
     $.ajaxq("fichiers",{
       url: 'ws.php?format=json',
       data: { method: 'pwg.images.addFromServer',
-              image_path: $("#chemin").text() +  image_name,
-              category: category_id,
+			  prefix_path: $("#chemin").text(),
+              images_paths: image_name,
+              category: $("select#albumSelect option:selected").val(),
               level: $("select[name=level] option:selected").val(),
 			},
             
@@ -567,26 +655,26 @@ $("input.launch").click(function() {
 			try { // Le parseJSON peut échouer
 				var answer = $.parseJSON(data);    
 				if (answer.stat == "ok") {// Si la requête n'a pas échoué
-					var nbDerivatives = answer.result.derivatives.length;
+					var nbDerivatives = answer.result[0].derivatives.length;
 					if (nbDerivatives > 0) {
 						$.ajaxq("fichiers",{
-							url: answer.result.derivatives[0] + "&ajaxload=true",
-							success: $.proxy(postSending,$(this),$(this),true,answer.result.image_id,answer.result.url) //Les premiers seront les derniers
+							url: answer.result[0].derivatives[0] + "&ajaxload=true",
+							success: $.proxy(postSendingo,$(this),$(this),true,answer.result[0].image_id,answer.result[0].url) //Les premiers seront les derniers
 						},true);
 						for (var i=1; i < nbDerivatives; i++) {
-							$.ajaxq("fichiers",{url: answer.result.derivatives[i] + "&ajaxload=true"},true);
+							$.ajaxq("fichiers",{url: answer.result[0].derivatives[i] + "&ajaxload=true"},true);
 						}
 					} else {
-						postSending($(this),true, answer.result.image_id, answer.result.url);
+						postSendingo($(this),true, answer.result[0].image_id, answer.result[0].url);
 					}
 				} else {
 					errorNotif(image_name, answer.message);
-					postSending($(this),false);
+					postSendingo($(this),false);
 				}
 			}
 			catch (error) {
 				errorNotif(image_name, data);
-				postSending($(this),false);
+				postSendingo($(this),false);
 			}
 		},$(this))
     });
@@ -594,21 +682,17 @@ $("input.launch").click(function() {
 });
 });
 
-// Reset du bas de la page si un autre dossier est affiché
-function reset() {
-    if( $('#status.end').is(':visible') ) { // L'upload est terminé
-        $("fieldset#progress").hide();
-        $("#status.end").hide();
-        $("#status.start").show();
-        $("fieldset#album").show();      
-    }
+///////////////////////////
+//    Iframe loading     //
+///////////////////////////
+
+function showBrowser(size) {
+    stopScan();
+    $("#browser").height(window.frames.browser.document.body.offsetHeight + 30); // Dimensionement de l'Iframe en fonction du contenu
+    $("#waitBrowser").css('background-color', $("#content").css('background-color')); // Copie de la couleur de fond du thème
+    $("#waitBrowser").hide();
 }
 
-// ---------------------------------------- //
-// Empêcher la fermeture si upload en cours //
-// ---------------------------------------- //
-
-window.onbeforeunload = function() {
-    if ($("#browser").contents().find('td.site.sending').length > 0)
-        return 'Un ajout de photos est en cours, voulez-vous vraiment quitter la page?';
+function hideBrowser() { // Le dossier change dans browse.php
+    $("#waitBrowser").show();
 }

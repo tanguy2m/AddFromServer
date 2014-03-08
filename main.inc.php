@@ -25,8 +25,9 @@ function new_ws($arr) {
     $service -> addMethod(
         'pwg.images.addFromServer',
         'ws_images_addFromServer',
-        array(
-            'image_path' => array('info' => 'Chemin relatif à $conf[\'AddFromServer\'][\'photos_local_folder\'] de l\'image sur le serveur'), // Mandatory
+        array( //TODO: factoriser
+            'prefix_path' => array('flags' => WS_PARAM_OPTIONAL, 'info' => 'Relatif à $conf[\'AddFromServer\'][\'photos_local_folder\']'),
+			'images_paths' => array('flags' => WS_PARAM_FORCE_ARRAY, 'info' => 'Tableau d\'emplacements d\'images relatifs à prefix_path'),
             'category' => array(
 				'flags' => WS_PARAM_OPTIONAL|WS_PARAM_FORCE_ARRAY,
 				'type' => WS_TYPE_ID,

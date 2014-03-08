@@ -28,12 +28,41 @@
   </div>
 </div>
 
+{* Add to album form *}
+<div class="addToAlbum" style="display:none">
+	<p class="before"><input type="button" class="launch" value="Ajouter ce dossier au site"></p>
+
+	<div class="before">
+		<span>Choix de l'album:<select class="albumSelect" name="category"></select>
+		<br>... ou </span><a href="#" class="addAlbumOpen" title="Créer un nouvel album">créer un nouvel album</a>
+	</div>
+
+	<div class="before">
+		Qui peut voir ces photos?
+		<select name="level" size="1">
+			{html_options options=$level_options selected=$level_options_selected}
+		</select>
+	</div>
+	
+	<div class="start" style="display:none">
+		Nombre de photos à envoyer:<span class="nbRestant"></span>/<span class="nbTotal"></span>
+		<div class="progressbar"></div>
+	</div>
+
+	<div class="end" style="display:none">
+		Images envoyées: <span class="nbErrors"></span> erreur(s) parmi les <span class="nbTotal"></span> photos.
+		<a href="" target="_blank">Afficher l'album</a>
+	</div>	
+</div>
+
+{* OBSO *}
 <div class="titrePage">
   <h2>
     Dossier: <span id="fullDir"><a onclick='changeFolder("");'>{$conf.photos_local_folder}</a><span id="chemin"></span></span>
   </h2>
 </div>
 
+{* OBSO *}
 <fieldset id="progress" style="display:none">
     <legend>Ajout des photos au serveur</legend>
 
@@ -46,10 +75,11 @@
 
 </fieldset>
 
+{* OBSO *}
 <fieldset id="album">
 	<legend>Configuration de l'album</legend>
 	<div class="addToAlbum">
-		<p><input type="button" class="launch" value="Ajouter ce dossier au site"></p>
+		<p><input type="button" id="launch" value="Ajouter ce dossier au site"></p>
 
 		<div>
 			<span>Choix de l'album:<select class="albumSelect" name="category"></select>
@@ -68,15 +98,15 @@
 <fieldset id="origine" class="reference">
   <legend>
     Contenu du dossier
-    <span id="loadingMissing" style="display:none">
-      <img src="./themes/default/images/ajax-loader-small.gif"/>
-    </span>
-    <span class="missing"></span>
+    {* OBSO *}<span id="loadingMissing" style="display:none">
+    {* OBSO *}  <img src="./themes/default/images/ajax-loader-small.gif"/>
+    {* OBSO *}</span>
+    {* OBSO *}<span class="missing"></span>
   </legend>
   
   <div id="thumb" style="display:none"><div id="thumbName"></div><img src="" alt="Preview"/></div>
-  <iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
-  <div id="waitBrowser" class="loadingBig"></div>
+  {* OBSO *}<iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
+  {* OBSO *}<div id="waitBrowser" class="loadingBig"></div>
   <div id="navigateur"></div>
 
 </fieldset>

@@ -14,12 +14,21 @@
 
 function ws_images_addFromServer($params, &$service) {
     
-    global $conf;    
+    global $conf;
+	
+    $file_names = array_flip(array_map('stripslashes',$params['images_paths']));
 
+	// Full-path construction
+	$prefix = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
+	if(!empty($params['prefix_path'])){
+		$prefix .= trim(stripslashes($params['prefix_path']),'/').'/'; // Uniquement un slash final
+	}
+	$keys = array_keys($file_names);
+	$full_path = $prefix.trim($keys[0],'/'); // Suppression des slashs au début et à la fin
+	
     // Image path verification
-    $params['image_path'] = $conf['AddFromServer']['photos_local_folder'].stripslashes($params['image_path']);
-    if (!is_file($params['image_path'])) {
-        return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid: ".$params['image_path']);
+    if (!is_file($full_path)) {
+        return new PwgError(WS_ERR_INVALID_PARAM, "Image path not specified or not valid: ".$full_path);
     }
 
     // Image_id verification
@@ -36,7 +45,7 @@ function ws_images_addFromServer($params, &$service) {
 	
     // Image already known ?
     include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
-	$md5 = md5_file($params['image_path']);
+	$md5 = md5_file($full_path);
     $query = '
       SELECT *
       FROM '.IMAGES_TABLE.'
@@ -48,15 +57,15 @@ function ws_images_addFromServer($params, &$service) {
     }
 	
     // Copy original in temporary folder
-    $original = $params['image_path'];
-    $params['image_path'] = PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/'.basename($original);
-    copy($original, $params['image_path']);
+    $original = $full_path;
+    $full_path = PHPWG_ROOT_PATH.PWG_LOCAL_DIR.'AddFromServer/'.basename($original);
+    copy($original, $full_path);
 
     require_once(PHPWG_ROOT_PATH.'admin/include/functions_upload.inc.php');
     // Fonction add_uploaded_file du script http://piwigo.org/dev/browser/trunk/admin/include/functions_upload.inc.php
     $image_id = add_uploaded_file(
-        $params['image_path'],
-        basename($params['image_path']),
+        $full_path,
+        basename($full_path),
         isset($params['category']) ? $params['category'] : null, // Array attendu
         $params['level'], // level has a default value
         isset($params['image_id']) ? $params['image_id'] : null,
@@ -152,7 +161,8 @@ function ws_images_addFromServer($params, &$service) {
 		$output['derivatives'] = $derivatives['urls'];
 	}
 	
-	return $output;
+	$file_names[$keys[0]] = $output;
+	return $file_names;
 }
 
 // ---------------------------

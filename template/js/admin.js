@@ -1,23 +1,21 @@
-// jQuery File Tree Plugin
-// Modified by Tanguy2m from version 1.01
-// This plugin is dual-licensed under the GNU General Public License and the MIT License and
-// is copyright 2008 A Beautiful Site, LLC (Cory S.N. LaViska - http://abeautifulsite.net/)
 $.extend($.fn, {
-	fileTree: function(o) {
-		// Defaults
-		if( !o ) var o = {};
-		if( o.root == undefined ) o.root = '';
-		if( o.script == undefined ) o.script = 'jqueryFileTree.php';
-		if( o.folderEvent == undefined ) o.folderEvent = 'click';
-		if( o.expandSpeed == undefined ) o.expandSpeed= 500;
-		if( o.collapseSpeed == undefined ) o.collapseSpeed= 250;
-		if( o.expandEasing == undefined ) o.expandEasing = null; //TODO: à supprimer
-		if( o.collapseEasing == undefined ) o.collapseEasing = null; //TODO: à supprimer
-		if( o.multiFolder == undefined ) o.multiFolder = false;
-		if( o.loadMessage == undefined ) o.loadMessage = 'Loading...';
-		o.fileClick = o.fileClick || function(path,file){ alert(path+file); };
-		o.treeCreated = o.treeCreated || function(){};
-		o.folderCollapsed = o.folderCollapsed || function(){};
+	// jQuery File Tree Plugin
+	// Heavily modified by tanguy2m in 2014 from version 1.01
+	// This plugin is dual-licensed under the GNU General Public License and the MIT License and
+	// is copyright 2008 A Beautiful Site, LLC (Cory S.N. LaViska - http://abeautifulsite.net/)
+	fileTree: function(options) {
+		var o = $.extend({
+			root: '',
+			script: 'jqueryFileTree.php',
+			folderEvent: 'click',
+			expandSpeed: 500,
+			collapseSpeed: 250,
+			fileClass: '',
+			multiFolder: false,
+			loadMessage: 'Loading...',
+			fileClick: function(path,file){ alert(path+file); },
+			treeCreated: $.noop, folderCollapsed: $.noop
+		},options);
 		
 		function showTree(c, t) {
 			$(c).addClass('wait');
@@ -29,7 +27,7 @@ $.extend($.fn, {
 				// Création des dossiers
 				$.each( data.dirs, function( key, value ) {
 					$dir = $('<li class="directory collapsed"></li>').attr("id",data.path + value + "/")
-						.append('<div class="dirheader">'+value+'<span class="status"></span></div>') //TODO: span.status pas vraiment lié au filetree
+						.append('<div class="dirheader">'+value+'</div>')
 						.appendTo($ul);
 				});
 				
@@ -42,7 +40,7 @@ $.extend($.fn, {
 						.bind('click', function() {
 							o.fileClick($(this).parent().parent().attr('id'),$(this).attr('data-name'));
 						});
-					if(value.process) $li.addClass('pending');
+					if(value.process) $li.addClass(o.fileClass);
 					$li.appendTo($ul);
 				});		
 				
@@ -57,11 +55,11 @@ $.extend($.fn, {
 		}
 		
 		function bindTree(t) {
-			$(t).find('li.directory .dirheader').bind(o.folderEvent, function() {
+			$(t).find('li.directory').children('.dirheader').bind(o.folderEvent, function() {
 				$dir = $(this).parent();
 				if( $dir.hasClass('collapsed') ) { // Expand
 					if( !o.multiFolder ) {
-						$dir.parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
+						$dir.parent().find('UL').slideUp({ duration: o.collapseSpeed });
 						$folders = $dir.parent().find('LI.directory.expanded');
 						$folders.removeClass('expanded').addClass('collapsed');
 						o.folderCollapsed($folders);
@@ -70,7 +68,7 @@ $.extend($.fn, {
 					showTree( $dir, $dir.attr('id') );
 					$dir.removeClass('collapsed').addClass('expanded');
 				} else { // Collapse
-					$dir.find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
+					$dir.find('UL').slideUp({ duration: o.collapseSpeed });
 					$dir.removeClass('expanded').addClass('collapsed');
 					o.folderCollapsed($dir);
 				}
@@ -83,12 +81,101 @@ $.extend($.fn, {
 			// Get the initial file list
 			showTree( $(this), o.root );
 		});
+	},
+
+	// ------------------------------- //
+	// Plugins pour dossiers fileTree  //
+	// ------------------------------- //
+	
+    addPiwigoMarkup: function() { // Ajoute à un dossier fileTree le markup pour upload Piwigo
+        return this.each(function() {
+			if($(this).children('.addToAlbum').length == 0) {
+				$(this).children('.dirheader')
+					.append('<span class="status"></span>')
+					.after($('.addToAlbum:first').clone(true));
+			}
+        });
+    },
+
+	updateStatus: function(state) { // Met à jour le header et le panel addToAlbum d'un dossier
+		return this.each(function() {
+			var $ata = $(this).children('.addToAlbum');
+			var $missing = $(this).children('.dirheader').children('.status');		
+
+			if (state=="during") {
+				$missing.html(" - Ajout des photos au site");
+				$ata.children('.before').hide();
+				$ata.children('.during').show();
+				return;
+			} else if (state=="after") {
+				$ata.children('.during').hide();
+				var nbErrors = $(this).find('.error').length;
+				$ata.find('.nbErrors').html(nbErrors);
+				if (nbErrors < parseInt($ata.find('.nbTotal').html()))
+					$ata.find('.after a').attr('href',$ata.find('.albumSelect option:selected').data('url'));
+				else
+					$ata.find('.after a').hide();
+				$ata.children('.after').show();
+			}
+
+			var number = $(this).children('ul').children('li.file.missing').length + $(this).children('ul').children('li.file.error').length;
+			if (number > 1) {
+				$missing.html(" - " + number + " photos absentes du site");
+			} else if (number == 0) {
+				if ($(this).children('ul').children('li.file.present').length > 0)
+					$missing.html(" - Toutes les photos sont déjà sur le site");
+			} else {
+				$missing.html(" - 1 photo absente du site");
+			}
+
+			if (state=="before") {
+				$ata.find('.nbRestant').html(number);
+				$ata.find('.nbTotal').html(number);
+				if (number>0) $(this).children('.addToAlbum').show();			
+			}
+		});
+	},
+	
+	updateProgress: function(nbFichiers){ // Met à jour la progression d'un upload
+		return this.each(function() {
+			var $ata = $(this).children('.addToAlbum');
+			var remaining = parseInt($ata.find('.nbRestant').html()) - nbFichiers;
+			$ata.find('.nbRestant').html(remaining);
+			$ata.find('.progressbar').progressbar({ value: (1-remaining/parseInt($ata.find('.nbTotal').html()))*100 });
+			if (remaining==0) $(this).updateStatus("after");
+		});
+	},
+
+	reset: function() { // Remet à zéro le div addToAlbum
+		return this.each(function() {
+			$ata = $(this).children('.addToAlbum');
+			$ata.hide();
+			$ata.find('.after').hide();
+			$ata.find('.before').show();
+			$ata.find('.progressbar').progressbar({ value: 0 });
+		});
+	},
+
+	// ------------------------------- //
+	// Plugins pour fichiers fileTree  //
+	// ------------------------------- //
+	
+	addPwgLink: function(url){ // Crée un lien vers la photo Piwigo
+		return this.each(function() {
+			$(this)
+				.unbind("click")
+				.addClass('present')
+				.removeAttr("title")
+				.bind("click",function(){
+					window.open(url);
+				});
+		});
 	}
 });
 
-///////////////////////////
-//     Notifications     //
-///////////////////////////
+// ---------------------------//
+//        Notifications       //
+// ---------------------------//
 
 function errorNotif(titre, message) {
     $.jGrowl(message, {
@@ -107,9 +194,9 @@ function infoNotif(titre, message) {
     });
 }
 
-///////////////////////////////////////
-//     Categories select filling     //
-///////////////////////////////////////
+// ---------------------------//
+//   Gestion des catégories   //
+// ---------------------------//
 
 function fillCategoryListbox(selector, selectedValue) {
 	$.getJSON("ws.php?format=json", {
@@ -137,16 +224,9 @@ function fillCategoryListbox(selector, selectedValue) {
 }
 
 $(function() {
-	fillCategoryListbox(".albumSelect",-1);
-});
+	fillCategoryListbox(".albumSelect",-1); // Récupération de la liste des catégories
 
-///////////////////////////////////////////////////
-//    Gestion de la popup "Ajout de catégorie"   //
-///////////////////////////////////////////////////
-
-$(document).ready(function() {
-
-    $(".addAlbumOpen").colorbox({
+    $(".addAlbumOpen").colorbox({ // Création de la pop-up d'ajout d'une catégorie
         inline: true,
         href: "#addAlbumForm",
         onComplete: function() {
@@ -154,7 +234,7 @@ $(document).ready(function() {
         }
     });
 
-    $("#addAlbumForm form").submit(function() {
+    $("#addAlbumForm form").submit(function() { // Demande d'ajout d'une nouvelle catégorie
         $("#categoryNameError").text("");
 
         $.ajax({
@@ -188,7 +268,6 @@ $(document).ready(function() {
 
         return false;
     });
-
 });
 
 // ---------------------------//
@@ -314,23 +393,18 @@ function positionThumb(e){
 }
 
 // --------------------------------------- //
-//      Mise à jour du panel 'fichier'     //
+//             Gestion des images          //
 // --------------------------------------- //
 
 // Mandatory = args.directory, args.fileClass, args.service, args.prefix
 function processImages(options){
 
 	var args = $.extend({
-		noimage: $.noop, success: $.noop, error: $.noop, afterProcess: $.noop,
+		success: $.noop, error: $.noop, afterProcess: $.noop,
 		maxNumber: 20 // Nombre max de fichiers par requête
 	}, options);
 
-	var files = args.directory.children('ul').children('li.'+args.fileClass);	
-	if (files.length == 0) { // Cas des dossiers
-		args.noimage();
-		return;
-	}
-
+	var files = args.directory.children('ul').children('li.'+args.fileClass);
 	var slices = new Array(), j = 0;
 	do {
 		slice = files.slice(j*args.maxNumber,(j+1)*args.maxNumber);
@@ -347,8 +421,8 @@ function processImages(options){
 					images_paths: $.map(slices[i], function(dom){ return $(dom).data('name'); })
 				}, args.data ),
 			beforeSend: $.proxy(function(){
-				$(this).removeClass(args.fileClass).addClass('wait');
-			},slices[i]),
+							$(this).removeClass(args.fileClass).addClass('wait');
+						},slices[i]),
             success: $.proxy(function(data) {
 				$(this).removeClass('wait');
                 try { // Le parseJSON peut échouer
@@ -369,7 +443,7 @@ function processImages(options){
             },slices[i]),
 			error: $.proxy(function() {
 				$(this).removeClass('wait');
-				args.error(this,'Erreur HTML'); // TODO: peut mieux faire
+				args.error(this,'Erreur HTML');
 			},slices[i]),
         };
 		if (i == 0)
@@ -382,141 +456,81 @@ function processImages(options){
     }
 }
 
-function addPwgLink($fichier,url){
-	$fichier
-		.unbind("click")
-		.addClass('present')
-		.removeAttr("title")
-		.bind("click",function(){
-			window.open(url);
-		});
-}
-
 $(function() {
 
 	// Récupération de la liste des fichiers
-	$('#navigateur').fileTree({ //TODO: la classe "pending" doit être un paramètre
+	var fileClass = 'pending';
+	$('#navigateur').fileTree({
 		script: 'admin.php?page=plugin-AddFromServer',
-		folderCollapsed: function($dossier){
-			$dossier.children('.addToAlbum').hide();
-		},
-		treeCreated: function($dossier,isRoot){		
+		fileClass: fileClass,
+		treeCreated: function($dossier,isRoot){
+			if(!isRoot) $dossier.addPiwigoMarkup();
 			// Récupération de l'état dans piwigo
 			processImages({
 				prefix: isRoot ? '' : $dossier.attr('id'),
 				directory: $dossier,
-				fileClass: 'pending',
+				fileClass: fileClass,
 				service: "pwg.images.existFromPath",
 				success: function($fichier,resultat){
 					if (resultat.id > 0) {
 						if (resultat.double == "yes")
 							$fichier.addClass('double').attr("title","Image en double");
 						else
-							addPwgLink($fichier,resultat.url);
+							$fichier.addPwgLink(resultat.url);
 					} else {
 						$fichier.addClass("missing").attr('title','Manque dans Piwigo');
 					}
 				},
 				afterProcess: function(){
-					if(!isRoot){
-						$missing = $dossier.children('.dirheader').children('.status');
-						var number = $dossier.children('ul').children('li.file.missing').length + $dossier.children('ul').children('li.file.error').length;
-						$missing.attr("id",number);
-						
-						if (number == 0) {
-							if ($dossier.children('ul').children('li.file.present').length > 0)
-								$missing.html(" - Toutes les photos sont déjà sur le site");
-							return;
-						}		
-						if (number > 1) {
-							$missing.html(" - " + number + " photos absentes du site");
-						} else if (number == 1) {
-							$missing.html(" - " + number + " photo absente du site");
-						}
-						
-						if($dossier.children('.addToAlbum').length == 0)
-							$dossier.children('.dirheader').after($('.addToAlbum:first').clone(true));
-						$dossier.children('.addToAlbum').show();
-					}
+					if(!isRoot) $dossier.updateStatus("before");
 				}
 			});
-		}
-	});
-
-});
-
-// --------------------------------------- //
-//         Ajout des photos au site        //
-// --------------------------------------- //
-
-function updateStatus($ata,nbFichiers){
-
-	var remaining = parseInt($ata.find('.nbRestant').html());
-	var nbTotal = $ata.find('.nbTotal').html();
-	
-	remaining -= nbFichiers;
-	if(remaining > 0) {
-		$ata.find('.nbRestant').html(remaining);
-		$ata.find('.progressbar').progressbar({ value: (1-remaining/nbTotal)*100 });
-	} else {
-		$ata.children('.start').hide();
-		$ata.find('.nbErrors').html($ata.parent().find('.error').length);
-		$ata.find('.end a').attr('href',$ata.find('.albumSelect option:selected').data('url')); //TODO: et si que des erreurs ?
-		$ata.children('.end').show();
-		//updateMissingNb(); // A faire pour mettre à jour le statut dossier //TODO
-	}
-}
-
-$(function() {
-$("input.launch").click(function() {
-
-	var $ata = $(this).parent().parent();
-	var $dossier = $ata.parent();
-	var $missing = $dossier.children('.dirheader').children('.status');
-	var nbTotal = $missing.attr("id"); //TODO: bof d'utiliser l'id pour ça
-
-	$ata.children('.before').hide();
-	$ata.find('.nbRestant').html(nbTotal);
-	$ata.find('.nbTotal').html(nbTotal);
-	$ata.children('.start').show();
-
-	$missing.html(" - Ajout des photos au site");
-
-	processImages({
-		prefix: $dossier.attr('id'), //TODO: et pour root ?
-		directory: $dossier,
-		fileClass: 'missing',
-		service: 'pwg.images.addFromServer',
-		maxNumber: 1,
-		data: {
-			category:  $ata.find("select[name=category] option:selected").val(),
-			level: $ata.find("select[name=level] option:selected").val()
 		},
-		success: function($file,resultat){
-			addPwgLink($file,resultat.url);
-			var nbDerivatives = resultat.derivatives.length;
-			if (nbDerivatives > 0) {
-				$.ajaxq("derivatives",{
-					url: resultat.derivatives[0] + "&ajaxload=true",
-					beforeSend: function(){ $file.addClass('wait'); }
-				});
-				for (var i=1; i < nbDerivatives - 1; i++) {
-					$.ajaxq("derivatives",{url: resultat.derivatives[i] + "&ajaxload=true"});
-				}
-				$.ajaxq("derivatives",{  //TODO: ko si une seule dérivative
-					url: resultat.derivatives[nbDerivatives - 1] + "&ajaxload=true",
-					complete: function(){ $file.removeClass('wait'); updateStatus($ata,1); }
-				});
-			} else {
-				updateStatus($ata,1);
+		folderCollapsed: function($dirs) { // Suppression de toutes les requêtes en attente + reset du dossier			
+			$dirs.removeClass('wait').reset();
+			if ($dirs.length > 0) {
+				$.ajaxq.clear("pwg.images.existFromPath");
+				$.ajaxq.clear("pwg.images.addFromServer");
+				$.ajaxq.clear("derivatives");
 			}
-		},
-		error: function(files,message){
-			files.addClass("error").attr('title','Erreur lors du transfert');
-			updateStatus($ata,files.length);
 		}
 	});
-});
+
+	// Ajout des photos au site
+	$("input.launch").click(function() {
+		var $dossier = $(this).parent().parent().parent();
+		$dossier.updateStatus("during");
+
+		processImages({
+			prefix: $dossier.attr('id'),
+			directory: $dossier,
+			fileClass: 'missing',
+			service: 'pwg.images.addFromServer',
+			maxNumber: 3,
+			data: {
+				category:  $dossier.children('.addToAlbum').find("select[name=category] option:selected").val(),
+				level: $dossier.children('.addToAlbum').find("select[name=level] option:selected").val()
+			},
+			success: function($file,resultat){
+				$file.addPwgLink(resultat.url);
+				var nbDerivatives = resultat.derivatives.length;
+				if (nbDerivatives > 0) {
+					for (var i=0; i < nbDerivatives; i++) {
+						options = {url: resultat.derivatives[i] + "&ajaxload=true"};
+						if (i==0) options.beforeSend = function(){ $file.addClass('wait'); };
+						if (i==nbDerivatives-1) options.complete = function(){ $file.removeClass('wait'); $dossier.updateProgress(1); };
+						$.ajaxq("derivatives",options);
+					}
+				} else {
+					$dossier.updateProgress(1);
+				}
+			},
+			error: function(files,message){
+				files.addClass("error").attr('title','Erreur lors du transfert');
+				$dossier.updateProgress(files.length);
+			}
+		});
+	});
 });
 
 // ---------------------------------------- //
@@ -524,7 +538,7 @@ $("input.launch").click(function() {
 // ---------------------------------------- //
 
 window.onbeforeunload = function() {
-    if ($("#browser").contents().find('td.site.sending').length > 0)
+    if ($('.during:visible').length > 0)
         return 'Un ajout de photos est en cours, voulez-vous vraiment quitter la page?';
 }
 
@@ -585,7 +599,7 @@ function updateChemin(path) {
   $("#chemin").empty();
 
   var folders = path.split("/");
-  
+
   $.each(folders, function(index, folder) {
     if(folder) {
       $("#chemin").append("<a onclick='changeFolder(\""+folders.slice(0,index+1).join("/")+"\");'>"+folder+"</a>/");

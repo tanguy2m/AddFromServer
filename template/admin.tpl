@@ -44,12 +44,12 @@
 		</select>
 	</div>
 	
-	<div class="start" style="display:none">
+	<div class="during" style="display:none">
 		Nombre de photos à envoyer:<span class="nbRestant"></span>/<span class="nbTotal"></span>
 		<div class="progressbar"></div>
 	</div>
 
-	<div class="end" style="display:none">
+	<div class="after" style="display:none">
 		Images envoyées: <span class="nbErrors"></span> erreur(s) parmi les <span class="nbTotal"></span> photos.
 		<a href="" target="_blank">Afficher l'album</a>
 	</div>	

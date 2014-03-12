@@ -9,6 +9,46 @@
 
 define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/');
 
+// +----------------------------------+
+// |          Files browser           |
+// +----------------------------------+
+
+if(isset($_POST['dir'])){
+	
+	global $conf;
+	header('Content-type: text/plain; charset=utf-8');
+	
+	$relDir = stripslashes($_POST['dir']);
+	$dir = $conf['AddFromServer']['photos_local_folder'] . $relDir;
+	if( file_exists($dir) ) {
+		$items = scandir($dir);
+		natcasesort($items);
+		if( count($items) > 2 ) { /* 2 = . and .. */
+			$dirs = array();
+			$files = array();
+			foreach( $items as $item ) {
+				if( file_exists($dir . $item) && $item != '.' && $item != '..' ){					
+					if( is_dir($dir . $item) ) { // Folder
+						$dirs[] = $item;
+					} else { // File
+						$ext = preg_replace('/^.*\./', '', $item);
+						$files[] = array(
+							"name" => $item,
+							"process" => ( in_array($ext, $conf['picture_ext']) ? true : false )
+						);
+					}
+				}
+			}
+			echo json_encode(array(
+				"path" => $relDir,
+				"dirs" => $dirs,
+				"files" => $files
+			));
+		}
+	}
+	exit();
+}
+
 // Déclaration des web-services
 add_event_handler('ws_add_methods', 'new_ws');
 function new_ws($arr) {

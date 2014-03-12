@@ -461,7 +461,7 @@ $(function() {
 	// Récupération de la liste des fichiers
 	var fileClass = 'pending';
 	$('#navigateur').fileTree({
-		script: 'admin.php?page=plugin-AddFromServer',
+		script: 'ws.php', // ou alors admin.php, peu importe
 		fileClass: fileClass,
 		treeCreated: function($dossier,isRoot){
 			if(!isRoot) $dossier.addPiwigoMarkup();

@@ -4,45 +4,6 @@ if (!defined('PHPWG_ROOT_PATH')) die('Hacking attempt!');
 global $conf, $template;
 
 // +-----------------------------------------------------------------------+
-// | Files browser                                                         |
-// +-----------------------------------------------------------------------+
-
-if(isset($_POST['dir'])){
-
-	header('Content-type: text/plain; charset=utf-8');
-	
-	$relDir = stripslashes($_POST['dir']);
-	$dir = $conf['AddFromServer']['photos_local_folder'] . $relDir;
-	if( file_exists($dir) ) {
-		$items = scandir($dir);
-		natcasesort($items);
-		if( count($items) > 2 ) { /* 2 = . and .. */
-			$dirs = array();
-			$files = array();
-			foreach( $items as $item ) {
-				if( file_exists($dir . $item) && $item != '.' && $item != '..' ){					
-					if( is_dir($dir . $item) ) { // Folder
-						$dirs[] = $item;
-					} else { // File
-						$ext = preg_replace('/^.*\./', '', $item);
-						$files[] = array(
-							"name" => $item,
-							"process" => ( in_array($ext, $conf['picture_ext']) ? true : false )
-						);
-					}
-				}
-			}
-			echo json_encode(array(
-				"path" => $relDir,
-				"dirs" => $dirs,
-				"files" => $files
-			));
-		}
-	}
-	exit();
-}
-
-// +-----------------------------------------------------------------------+
 // | Tabs                                                                  |
 // +-----------------------------------------------------------------------+
 

@@ -42,4 +42,72 @@ function move_to_bin($files) {
 	return $errors_list;
 }
 
+function listDirectory($dossier) {
+
+	global $conf;
+	header('Content-type: text/plain; charset=utf-8');
+	$dir = $conf['AddFromServer']['photos_local_folder'] . $dossier;
+	
+	if( file_exists($dir) ) {
+		$items = scandir($dir);
+		natcasesort($items);
+		if( count($items) > 2 ) { /* 2 = . and .. */
+			$dirs = array();
+			$files = array();
+			foreach( $items as $item ) {
+				if( file_exists($dir . $item) && $item != '.' && $item != '..' ){					
+					if( is_dir($dir . $item) ) { // Folder
+						$dirs[] = $item;
+					} else { // File
+						$ext = preg_replace('/^.*\./', '', $item);
+						$files[] = array(
+							"name" => $item,
+							"process" => ( in_array($ext, $conf['picture_ext']) ? true : false )
+						);
+					}
+				}
+			}
+			echo json_encode(array(
+				"path" => $dossier,
+				"dirs" => $dirs,
+				"files" => $files
+			));
+		}
+	}
+	exit();
+}
+
+function generateThumb($fichier) {
+
+	global $conf;
+	$file = $conf['AddFromServer']['photos_local_folder'] . $fichier;
+	
+	// Reset les headers ajoutés par session_cache_limiter()
+	// http://stackoverflow.com/a/681584
+	header_remove("Cache-Control");
+	header_remove("Expires");
+	header_remove("Pragma");
+	
+	if(filemtime($file) < filemtime(__FILE__))
+		$mtime = gmdate('r', filemtime(__FILE__));
+	else
+		$mtime = gmdate('r', filemtime($file));
+	$etag = md5($mtime.$file);
+
+	if ((isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $_SERVER['HTTP_IF_MODIFIED_SINCE'] == $mtime)
+		|| (isset($_SERVER['HTTP_IF_NONE_MATCH']) && str_replace('"', '', stripslashes($_SERVER['HTTP_IF_NONE_MATCH'])) == $etag)) 
+	{
+		header('HTTP/1.1 304 Not Modified');
+		exit;
+	} else {
+		header('ETag: "'.$etag.'"');
+		header('Last-Modified: '.$mtime);
+		$size = isset($_GET['size']) ? $_GET['size'] : 300;
+		$cmd = 'convert -define jpeg:size='.$size.'x'.$size.' "'.$file.'" -auto-orient -thumbnail '.$size.'x'.$size.' -unsharp 0x.5 JPG:-';
+		header("Content-Type: image/jpeg" );
+		passthru($cmd, $retval);
+		exit;
+	}
+}
+
 ?>

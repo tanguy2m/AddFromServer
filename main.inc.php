@@ -12,41 +12,17 @@ define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/
 // +----------------------------------+
 // |          Files browser           |
 // +----------------------------------+
-
 if(isset($_POST['dir'])){
-	
-	global $conf;
-	header('Content-type: text/plain; charset=utf-8');
-	
-	$relDir = stripslashes($_POST['dir']);
-	$dir = $conf['AddFromServer']['photos_local_folder'] . $relDir;
-	if( file_exists($dir) ) {
-		$items = scandir($dir);
-		natcasesort($items);
-		if( count($items) > 2 ) { /* 2 = . and .. */
-			$dirs = array();
-			$files = array();
-			foreach( $items as $item ) {
-				if( file_exists($dir . $item) && $item != '.' && $item != '..' ){					
-					if( is_dir($dir . $item) ) { // Folder
-						$dirs[] = $item;
-					} else { // File
-						$ext = preg_replace('/^.*\./', '', $item);
-						$files[] = array(
-							"name" => $item,
-							"process" => ( in_array($ext, $conf['picture_ext']) ? true : false )
-						);
-					}
-				}
-			}
-			echo json_encode(array(
-				"path" => $relDir,
-				"dirs" => $dirs,
-				"files" => $files
-			));
-		}
-	}
-	exit();
+	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+	listDirectory(stripslashes($_POST['dir']));
+}
+
+// +----------------------------------+
+// |      Thumbnail generation        |
+// +----------------------------------+
+if(isset($_GET['thumb'])){
+	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
+	generateThumb(stripslashes($_GET['thumb']));
 }
 
 // Déclaration des web-services

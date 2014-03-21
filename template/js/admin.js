@@ -13,7 +13,6 @@ $.extend($.fn, {
 			fileClass: '',
 			multiFolder: false,
 			loadMessage: 'Loading...',
-			fileClick: function(path,file){ alert(path+file); },
 			treeCreated: $.noop, folderCollapsed: $.noop
 		},options);
 		
@@ -23,27 +22,24 @@ $.extend($.fn, {
 			$.post(o.script, { dir: t }, function(data) {
 				$(c).find('.start').html('');
 				$ul = $('<ul class="jqueryFileTree" style="display: none;"></ul>');
-				
+
 				// Création des dossiers
 				$.each( data.dirs, function( key, value ) {
 					$dir = $('<li class="directory collapsed"></li>').attr("id",data.path + value + "/")
 						.append('<div class="dirheader">'+value+'</div>')
 						.appendTo($ul);
 				});
-				
+
 				// Création des fichiers
 				var re = /(?:\.([^./]+))?$/;
 				$.each( data.files, function( key, value ) {
 					$li = $('<li class="file"></li>').attr("data-name",value.name)
 						.addClass('ext_'+re.exec(value.name)[1])
-						.append(value.name)
-						.bind('click', function() {
-							o.fileClick($(this).parent().parent().attr('id'),$(this).attr('data-name'));
-						});
+						.append(value.name);
 					if(value.process) $li.addClass(o.fileClass);
 					$li.appendTo($ul);
-				});		
-				
+				});
+
 				$(c).removeClass('wait').append($ul);
 				if( o.root == t )
 					$(c).find('UL:hidden').show();
@@ -53,7 +49,7 @@ $.extend($.fn, {
 				o.treeCreated($(c),!$(c).hasClass('directory'));
 			},"json");
 		}
-		
+
 		function bindTree(t) {
 			$(t).find('li.directory').children('.dirheader').bind(o.folderEvent, function() {
 				$dir = $(this).parent();
@@ -135,9 +131,9 @@ $.extend($.fn, {
 			}
 		});
 	},
-	
+
 	updateProgress: function(nbFichiers){ // Met à jour la progression d'un upload
-		return this.each(function() {
+		return this.each(function()
 			var $ata = $(this).children('.addToAlbum');
 			var remaining = parseInt($ata.find('.nbRestant').html()) - nbFichiers;
 			$ata.find('.nbRestant').html(remaining);
@@ -159,14 +155,14 @@ $.extend($.fn, {
 	// ------------------------------- //
 	// Plugins pour fichiers fileTree  //
 	// ------------------------------- //
-	
+
 	addPwgLink: function(url){ // Crée un lien vers la photo Piwigo
 		return this.each(function() {
 			$(this)
-				.unbind("click")
+				.removeClass('cboxElement') // Désactivation de la colorbox si besoin
 				.addClass('present')
 				.removeAttr("title")
-				.bind("click",function(){
+				.click(function(){
 					window.open(url);
 				});
 		});
@@ -361,38 +357,6 @@ function supprFromPath(params) {
 }
 
 // --------------------------------------- //
-//                Miniatures               //
-// --------------------------------------- //
-
-function removeThumb(){
-	$("#thumb").hide();
-}
-
-function displayThumb(path,e){
-	$("#thumb").hide();
-	$("#thumbName").html(decodeURIComponent(path.substring(path.lastIndexOf('/') + 1)));
-	$("#thumb").show();
-	$("#thumb img").load(function() { // Code exécuté à l'ouverture de l'image
-		positionThumb(e);
-		$(this).fadeIn("medium");
-    })
-	.attr('src',pluginPath +"template/browse.php?thumb="+ path);
-}
-
-function positionThumb(e){
-	xOffset = 35;
-	yOffset = 35;
-	$("#thumb").css("left",(e.clientX + xOffset) + "px");
-  
-	$("#thumb").css("bottom","auto").css('top', 'auto');
-	if(e.clientY + yOffset + $("#thumb").height() > $("#origine").height()) {
-		$("#thumb").css("bottom","0");
-	} else {
-		$("#thumb").css("top", (e.clientY + yOffset) + "px");
-	}
-}
-
-// --------------------------------------- //
 //             Gestion des images          //
 // --------------------------------------- //
 
@@ -466,8 +430,9 @@ $(function() {
 		treeCreated: function($dossier,isRoot){
 			if(!isRoot) $dossier.addPiwigoMarkup();
 			// Récupération de l'état dans piwigo
+			var prefix = isRoot ? '' : $dossier.attr('id');
 			processImages({
-				prefix: isRoot ? '' : $dossier.attr('id'),
+				prefix: prefix,
 				directory: $dossier,
 				fileClass: fileClass,
 				service: "pwg.images.existFromPath",
@@ -478,7 +443,14 @@ $(function() {
 						else
 							$fichier.addPwgLink(resultat.url);
 					} else {
-						$fichier.addClass("missing").attr('title','Manque dans Piwigo');
+						$fichier
+							.addClass("missing").attr('title','Manque dans Piwigo')
+							.colorbox({
+								href: "ws.php?thumb="+prefix+$fichier.attr('data-name'),
+								title: $fichier.attr('data-name'),
+								rel: $dossier.attr('id'),
+								photo: true
+							});
 					}
 				},
 				afterProcess: function(){
@@ -545,6 +517,38 @@ window.onbeforeunload = function() {
 // ======================================= //
 //                   Obso                  //
 // ======================================= //
+
+// --------------------------------------- //
+//                Miniatures               //
+// --------------------------------------- //
+
+function removeThumb(){ // OBSO
+	$("#thumb").hide();
+}
+
+function positionThumb(e){ // OBSO
+	xOffset = 35;
+	yOffset = 35;
+	$("#thumb").css("left",(e.clientX + xOffset) + "px");
+  
+	$("#thumb").css("bottom","auto").css('top', 'auto');
+	if(e.clientY + yOffset + $("#thumb").height() > $("#origine").height()) {
+		$("#thumb").css("bottom","0");
+	} else {
+		$("#thumb").css("top", (e.clientY + yOffset) + "px");
+	}
+}
+
+function displayThumb(path,e){ //OBSO
+	$("#thumb").hide();
+	$("#thumbName").html(decodeURIComponent(path.substring(path.lastIndexOf('/') + 1)));
+	$("#thumb").show();
+	$("#thumb img").load(function() { // Code exécuté à l'ouverture de l'image
+		positionThumb(e);
+		$(this).fadeIn("medium");
+    })
+	.attr('src',pluginPath +"template/browse.php?thumb="+ path);
+}
 
 // Reset du bas de la page si un autre dossier est affiché
 function reset() {

@@ -6,8 +6,9 @@
 {combine_css path="$plugin_folder/template/admin.css"}
 {include file='include/colorbox.inc.tpl'}
 
+{* OBSO ou pas *}
 {html_head}{literal}
-<script type="text/javascript">
+<script type="text/javascript"> 
 	pluginPath='{/literal}{$plugin_folder}{literal}';
 </script>
 {/literal}{/html_head}
@@ -95,7 +96,7 @@
 	</div>
 </fieldset>
 
-<fieldset id="origine" class="reference">
+<fieldset id="origine">
   <legend>
     Contenu du dossier
     {* OBSO *}<span id="loadingMissing" style="display:none">
@@ -104,7 +105,7 @@
     {* OBSO *}<span class="missing"></span>
   </legend>
   
-  <div id="thumb" style="display:none"><div id="thumbName"></div><img src="" alt="Preview"/></div>
+  {* OBSO *}<div id="thumb" style="display:none"><div id="thumbName"></div><img src="" alt="Preview"/></div>
   {* OBSO *}<iframe id="browser" src="{$plugin_folder}template/browse.php" ></iframe>
   {* OBSO *}<div id="waitBrowser" class="loadingBig"></div>
   <div id="navigateur"></div>

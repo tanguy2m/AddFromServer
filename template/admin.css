@@ -30,6 +30,12 @@ fieldset#album, fieldset#progress {text-align: left;}
   display:block;
 }
 
+.supprBut {
+	position: absolute;
+	top: 25px;
+	left: 5px;
+}
+
 /****************************/
 /*     jqueryFileTree       */
 /****************************/

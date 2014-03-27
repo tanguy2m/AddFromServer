@@ -120,6 +120,8 @@ $.extend($.fn, {
 			} else if (number == 0) {
 				if ($(this).children('ul').children('li.file.present').length > 0)
 					$missing.html(" - Toutes les photos sont déjà sur le site");
+				else
+					$missing.hide();
 			} else {
 				$missing.html(" - 1 photo absente du site");
 			}
@@ -127,13 +129,16 @@ $.extend($.fn, {
 			if (state=="before") {
 				$ata.find('.nbRestant').html(number);
 				$ata.find('.nbTotal').html(number);
-				if (number>0) $(this).children('.addToAlbum').show();			
+				if (number>0)
+					$(this).children('.addToAlbum').show();
+				else
+					$(this).children('.addToAlbum').hide();
 			}
 		});
 	},
 
 	updateProgress: function(nbFichiers){ // Met à jour la progression d'un upload
-		return this.each(function()
+		return this.each(function() {
 			var $ata = $(this).children('.addToAlbum');
 			var remaining = parseInt($ata.find('.nbRestant').html()) - nbFichiers;
 			$ata.find('.nbRestant').html(remaining);
@@ -270,91 +275,48 @@ $(function() {
 //   Suppression de photos    //
 // ---------------------------//
 
-// Suppression d'une photo à partir de son ID
-function supprFromID(params) { // Obso ?
-    
-  params.image = params.image || '';
-  //params.id mandatory
-  params.success = params.success || function(){};
-  
-  $.ajax({
-    url: 'ws.php?format=json',
-    data: { method: 'pwg.session.getStatus' },
-    success: function(data) {
-      try { // Le parseJSON peut échouer
-        if ($.parseJSON(data).stat == "fail") {
-          errorNotif('Suppression ' + params.image, $.parseJSON(data).message);
-        } else {
-          var token = $.parseJSON(data).result.pwg_token;
-          $.ajax({
-            url: 'ws.php?format=json',
-            type: "POST",
-            data: {
-              method: 'pwg.images.delete',
-              image_id: params.id,
-              pwg_token: token
-            },
-            success: function(answer) {
-              try { // Le parseJSON peut échouer
-                if ($.parseJSON(answer).stat == "fail") {
-                  errorNotif('Suppression ' + params.image, $.parseJSON(answer).message);
-                } else {
-                  infoNotif(params.image, 'Fichier supprimé');
-                  params.success();
-                  updateMissingNb();
-                }
-              }
-              catch (error) {
-                errorNotif('Suppression ' + params.image, answer);
-              }
-            }
-          });
-        }
-      }
-      catch (error) {
-        errorNotif('Suppression ' + params.image, data);
-      }
-    }
-  });
-}
-
-// Suppression d'une image à partir de son chemin
-function supprFromPath(params) {
-    
-  params.path = params.path || '';
-  //params.image mandatory
-  params.success = params.success || function(){};
-  
-  $.ajax({
-    url: 'ws.php?format=json',
-    data: {
-      method: 'pwg.images.deleteFromServer',
-      prefix_path: params.path,
-      images_paths: params.image
-    },
-    success: function(data) {
-      try { // Le parseJSON peut échouer
-        if ($.parseJSON(data).stat == "fail") {
-          var message = $.parseJSON(data).message;
-          if ('errors' in message) { // Le message contient un attribut errors
-            for (var err in message.errors) {
-              errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
-            }
-          } else {
-            errorNotif('Suppression ' + params.image, message);
-          }
-        } else {
-          infoNotif(params.image, 'Fichier supprimé');
-          params.success();
-          updateMissingNb();
-        }
-      }
-      catch (error) {
-        errorNotif('Suppression ' + params.image, data);
-      }
-    }
-  });
-}
+$(function() {
+	$(document).on('click', '.supprBut', function() {	
+		var image = $(this).data('image');
+		var path = $(this).data('path');		
+		$.ajax({
+			url: 'ws.php?format=json',
+			data: {
+				method: 'pwg.images.deleteFromServer',
+				prefix_path: path,
+				images_paths: image
+			},
+			success: function(data) {
+				try { // Le parseJSON peut échouer
+					if ($.parseJSON(data).stat == "fail") {
+						var message = $.parseJSON(data).message;
+						if ('errors' in message) { // Le message contient un attribut errors
+							for (var err in message.errors) {
+								errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
+							}
+						} else {
+							errorNotif('Suppression ' + image, message);
+						}
+					} else {
+						infoNotif(image, 'Fichier supprimé');
+						$dossier = $(document.getElementById(path));
+						$file = $dossier.children('ul').children("li[data-name='"+image+"']");
+						$next = $file.next();
+						$file.remove(); // Suppression du fichier dans le listing
+						if ($next.data('colorbox')) // Si une colorbox existe pour le fichier suivant
+							$next.colorbox({open:true});// Refresh colorbox
+						else
+							$.colorbox.close(); // Close colorbox
+						$dossier.updateStatus("before");
+					}
+				}
+				catch (error) {
+					errorNotif('Suppression ' + params.image, data);
+				}
+			}
+		});
+	});
+});
 
 // --------------------------------------- //
 //             Gestion des images          //
@@ -447,7 +409,12 @@ $(function() {
 							.addClass("missing").attr('title','Manque dans Piwigo')
 							.colorbox({
 								href: "ws.php?thumb="+prefix+$fichier.attr('data-name'),
-								title: $fichier.attr('data-name'),
+								title: function(){
+									$button = $('<button class="supprBut">Suppr</button>')
+										.attr('data-path',prefix)
+										.attr('data-image',$fichier.data('name'));
+									return $fichier.data('name') + $button.prop('outerHTML');
+								},
 								rel: $dossier.attr('id'),
 								photo: true
 							});
@@ -517,6 +484,96 @@ window.onbeforeunload = function() {
 // ======================================= //
 //                   Obso                  //
 // ======================================= //
+
+// ---------------------------//
+//   Suppression de photos    //
+// ---------------------------//
+
+// Suppression d'une photo à partir de son ID
+function supprFromID(params) {
+    
+  params.image = params.image || '';
+  //params.id mandatory
+  params.success = params.success || function(){};
+  
+  $.ajax({
+    url: 'ws.php?format=json',
+    data: { method: 'pwg.session.getStatus' },
+    success: function(data) {
+      try { // Le parseJSON peut échouer
+        if ($.parseJSON(data).stat == "fail") {
+          errorNotif('Suppression ' + params.image, $.parseJSON(data).message);
+        } else {
+          var token = $.parseJSON(data).result.pwg_token;
+          $.ajax({
+            url: 'ws.php?format=json',
+            type: "POST",
+            data: {
+              method: 'pwg.images.delete',
+              image_id: params.id,
+              pwg_token: token
+            },
+            success: function(answer) {
+              try { // Le parseJSON peut échouer
+                if ($.parseJSON(answer).stat == "fail") {
+                  errorNotif('Suppression ' + params.image, $.parseJSON(answer).message);
+                } else {
+                  infoNotif(params.image, 'Fichier supprimé');
+                  params.success();
+                  updateMissingNb();
+                }
+              }
+              catch (error) {
+                errorNotif('Suppression ' + params.image, answer);
+              }
+            }
+          });
+        }
+      }
+      catch (error) {
+        errorNotif('Suppression ' + params.image, data);
+      }
+    }
+  });
+}
+
+// Suppression d'une image à partir de son chemin
+function supprFromPath(params) {
+    
+  params.path = params.path || '';
+  //params.image mandatory
+  params.success = params.success || function(){};
+  
+  $.ajax({
+    url: 'ws.php?format=json',
+    data: {
+      method: 'pwg.images.deleteFromServer',
+      prefix_path: params.path,
+      images_paths: params.image
+    },
+    success: function(data) {
+      try { // Le parseJSON peut échouer
+        if ($.parseJSON(data).stat == "fail") {
+          var message = $.parseJSON(data).message;
+          if ('errors' in message) { // Le message contient un attribut errors
+            for (var err in message.errors) {
+              errorNotif('Suppression ' + message.errors[err].file, message.errors[err].error);
+            }
+          } else {
+            errorNotif('Suppression ' + params.image, message);
+          }
+        } else {
+          infoNotif(params.image, 'Fichier supprimé');
+          params.success();
+          updateMissingNb();
+        }
+      }
+      catch (error) {
+        errorNotif('Suppression ' + params.image, data);
+      }
+    }
+  });
+}
 
 // --------------------------------------- //
 //                Miniatures               //

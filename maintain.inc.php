@@ -21,14 +21,9 @@ class AddFromServer_maintain extends PluginMaintain	{
             return;
         }
 		
-        // Symlink creation to the photos directory
-    	symlink($conf['AddFromServer']['photos_local_folder'],realpath(dirname(__FILE__)).'/template/photos');
 	}
     
-	function deactivate(){
-        // Remove symlink to photos directory
-    	unlink(realpath(dirname(__FILE__)).'/template/photos');
-	}
+	function deactivate(){}
 	
 	function uninstall()
 	{ 

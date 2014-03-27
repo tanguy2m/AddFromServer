@@ -1,7 +1,7 @@
 <?php
   
 if (!defined('PHPWG_ROOT_PATH')) die('Hacking attempt!');
-global $conf, $template;
+global $template;
 
 // +-----------------------------------------------------------------------+
 // | Tabs                                                                  |
@@ -24,7 +24,6 @@ $tabsheet->assign();
 
 $template->assign(array(
 	'plugin_folder'=> ADD_FROM_SERVER_PATH,
-	'conf' => $conf['AddFromServer'],
 	'level_options'=> get_privacy_level_options(), // Récupération des différents niveaux de visibilité
 	'level_options_selected' => array(8) // Par défaut, visibilité = "Admins only"
 ));

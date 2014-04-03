@@ -87,7 +87,7 @@ $.extend($.fn, {
         return this.each(function() {
 			if($(this).children('.addToAlbum').length == 0) {
 				$(this).children('.dirheader')
-					.append('<span class="status"></span>')
+					.before('<span class="status" style="display:none"></span>')
 					.after($('.addToAlbum:first').clone(true));
 			}
         });
@@ -96,10 +96,10 @@ $.extend($.fn, {
 	updateStatus: function(state) { // Met à jour le header et le panel addToAlbum d'un dossier
 		return this.each(function() {
 			var $ata = $(this).children('.addToAlbum');
-			var $missing = $(this).children('.dirheader').children('.status');		
+			var $missing = $(this).children('.status');
 
 			if (state=="during") {
-				$missing.html(" - Ajout des photos au site");
+				$missing.hide();
 				$ata.children('.before').hide();
 				$ata.children('.during').show();
 				return;
@@ -113,31 +113,34 @@ $.extend($.fn, {
 					$ata.find('.after a').hide();
 				$ata.children('.after').show();
 			}
-
+			
+			// Applied for states 'before' and 'after'
 			var number = $(this).children('ul').children('li.file.missing').length + $(this).children('ul').children('li.file.error').length;
-			if (number > 1) {
-				$missing.html(" - " + number + " photos absentes du site");
-			} else if (number == 0) {
+			if (number == 0) {
 				if ($(this).children('ul').children('li.file.present').length > 0)
-					$missing.html(" - Toutes les photos sont déjà sur le site");
+					$missing.html('&checkmark;')
+						.attr('title','Toutes les photos sont sous Piwigo')
+						.addClass('ok').show();
 				else
 					$missing.hide();
 			} else {
-				$missing.html(" - 1 photo absente du site");
+				$missing.html(number)
+					.attr('title',number+' photo(s) manquante(s) dans ce dossier')
+					.addClass('ko').show();
 			}
 
 			if (state=="before") {
 				$ata.find('.nbRestant').html(number);
 				$ata.find('.nbTotal').html(number);
 				if (number>0)
-					$(this).children('.addToAlbum').show();
+					$ata.show();
 				else
-					$(this).children('.addToAlbum').hide();
+					$ata.hide();
 			}
 		});
 	},
 
-	updateProgress: function(nbFichiers){ // Met à jour la progression d'un upload
+	updateProgress: function(nbFichiers) { // Met à jour la progression d'un upload
 		return this.each(function() {
 			var $ata = $(this).children('.addToAlbum');
 			var remaining = parseInt($ata.find('.nbRestant').html()) - nbFichiers;

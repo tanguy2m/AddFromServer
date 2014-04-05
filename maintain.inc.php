@@ -16,11 +16,6 @@ class AddFromServer_maintain extends PluginMaintain	{
             return;
         }
 		
-        if(substr($conf['AddFromServer']['photos_local_folder'], -1) !== '/'){
-            $errors[] = "La variable de configuration ['AddFromServer']['photos_local_folder'] doit se terminer par un '/'";
-            return;
-        }
-		
 	}
     
 	function deactivate(){}

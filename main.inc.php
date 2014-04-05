@@ -8,6 +8,7 @@
   */
 
 define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/');
+$conf['AddFromServer']['photos_local_folder'] = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
 
 // +----------------------------------+
 // |          Files browser           |
@@ -161,7 +162,6 @@ if( !empty($conf['AddFromServer']['removeOriginals']) && $conf['AddFromServer'][
 
 function get_paths($ids) {
 	global $paths_to_be_deleted, $conf;
-	$photosPath = $conf['AddFromServer']['photos_local_folder'];
 	
 	foreach($ids as $image_id) {	
 		// Récupération du chemin vers la photo source de Piwigo
@@ -175,7 +175,7 @@ function get_paths($ids) {
 	
 		// Récupération du chemin original pour suppression
 		if (is_link($file_path)) {
-			array_push($paths_to_be_deleted, str_replace($photosPath, "", readlink($file_path)));
+			array_push($paths_to_be_deleted, str_replace($conf['AddFromServer']['photos_local_folder'], "", readlink($file_path)));
 		}
 	}
 }

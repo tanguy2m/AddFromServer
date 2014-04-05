@@ -20,7 +20,7 @@ function ws_images_addFromServer($params, &$service) {
     $file_names = array_flip(array_map('stripslashes',$params['images_paths']));
 
 	// Full-path construction
-	$prefix = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
+	$prefix = $conf['AddFromServer']['photos_local_folder'];
 	if(!empty($params['prefix_path'])){
 		$prefix .= trim(stripslashes($params['prefix_path']),'/').'/'; // Uniquement un slash final
 	}
@@ -180,7 +180,7 @@ function ws_images_existFromPath($params, &$service) {
     $file_names = array_flip(array_map('stripslashes',$params['images_paths']));
 	
 	// Full-path construction
-	$prefix = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
+	$prefix = $conf['AddFromServer']['photos_local_folder'];
 	if(!empty($params['prefix_path'])){
 		$prefix .= trim(stripslashes($params['prefix_path']),'/').'/'; // Uniquement un slash final
 	}

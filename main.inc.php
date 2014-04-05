@@ -7,6 +7,7 @@
   Plugin URI: https://github.com/tanguy2m/AddFromServer/
   */
 
+global $conf;
 define('ADD_FROM_SERVER_PATH', PHPWG_PLUGINS_PATH.basename(dirname(__FILE__)).'/');
 $conf['AddFromServer']['photos_local_folder'] = rtrim($conf['AddFromServer']['photos_local_folder'],'/').'/'; // Ajout du slash final le cas échéant
 

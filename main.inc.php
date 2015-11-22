@@ -1,7 +1,7 @@
 <?php
   /*
   Plugin Name: AddFromServer
-  Version: 2.6.a
+  Version: 2.7.a_beta
   Description: Add images already stored on server to Piwigo
   Author: tanguy2m
   Author URI: https://github.com/tanguy2m
@@ -89,7 +89,7 @@ function new_ws($arr) {
 }
 
 // Add a new tab in photos_add page
-add_event_handler('tabsheet_before_select','addFromServer_add_tab', 50, 2);
+add_event_handler('tabsheet_before_select','addFromServer_add_tab');
 function addFromServer_add_tab($sheets, $id) {
 	if ($id == 'photos_add') {
 		$sheets['addFromServer'] = array(
@@ -104,17 +104,14 @@ function addFromServer_add_tab($sheets, $id) {
 include_once(PHPWG_ROOT_PATH.'/include/functions_plugins.inc.php');	
 $admintools = get_db_plugins('active', 'AdminTools');
 if (empty($admintools)){
-	add_event_handler('loc_end_picture', 'add_button');
+	add_event_handler('loc_end_picture', 'add_button', 50, PHPWG_ROOT_PATH.'admin/include/functions.php');
 }
 
 function add_button() {
 	global $template, $page, $picture;
 	
 	// Delete image if requested
-	if (isset($_GET['action']) && $_GET['action'] == 'delete') {
-		
-		include_once(PHPWG_ROOT_PATH.'admin/include/functions.php');
-		
+	if (isset($_GET['action']) && $_GET['action'] == 'delete') {	
 		//Re-use: admin/picture_modify.php@line 53
 		check_pwg_token(); // include/functions.inc.php@line 1543
 		delete_elements(array($page['image_id']), true);
@@ -156,7 +153,7 @@ function add_button() {
 global $conf;
 if( !empty($conf['AddFromServer']['removeOriginals']) && $conf['AddFromServer']['removeOriginals'] ){
 	add_event_handler('begin_delete_elements', 'get_paths');
-	add_event_handler('delete_elements', 'delete_originals');
+	add_event_handler('delete_elements', 'delete_originals', 50, ADD_FROM_SERVER_PATH.'include/functions.inc.php');
 	
 	global $paths_to_be_deleted; // Tableau des images à déplacer dans la corbeille
 	$paths_to_be_deleted = array(); // Les chemins doivent être relatifs à $conf['AddFromServer']['photos_local_folder']
@@ -183,8 +180,6 @@ function get_paths($ids) {
 }
 
 function delete_originals($ids) {
-
-	include_once(ADD_FROM_SERVER_PATH.'include/functions.inc.php');
 	global $paths_to_be_deleted;
 	
 	log_line("$paths_to_be_deleted: ".implode(";",$paths_to_be_deleted));
